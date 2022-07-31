@@ -1,0 +1,22 @@
+[build-system]
+requires = [
+  "setuptools>=45.0",
+  "setuptools-scm>=6.2.3",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/foreverbull_core/_version.py"
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.black]
+line-length = 120
+extend-exclude = "src/foreverbull_core/_version.py"
+
+[tool.isort]
+profile = "black"
+src_paths = ["src/foreverbull_core", "tests"]
+line_length = 120

@@ -1,0 +1,28 @@
+FROM python:3.8
+
+RUN apt-get update
+RUN apt-get install -y libhdf5-dev liblapack-dev gfortran cmake build-essential python3-dev automake autoconf
+RUN apt install -y libatlas-base-dev python3-dev gfortran pkg-config libfreetype6-dev hdf5-tools
+RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
+
+RUN curl -L -o ta-lib-0.4.0-src.tar.gz  http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz 
+RUN tar xvfz ta-lib-0.4.0-src.tar.gz
+WORKDIR /ta-lib
+RUN ls
+RUN cp /usr/share/automake-1.16/config.guess .
+RUN ./configure --prefix=/usr/local
+RUN make
+RUN make install
+RUN apt upgrade -y 
+
+WORKDIR /app
+COPY . /app
+
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools
+RUN pip install --upgrade cython
+
+RUN pip install -e .
+RUN pip install git+https://github.com/quantfamily/foreverbull-core.git@3c0ec3ee44cd702b2e755e9238342006ea215395
+
+CMD ["python", "-m", "app"]

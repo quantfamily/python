@@ -1,0 +1,6 @@
+Yahoo Demo Bundle
+=================
+
+.. automodule:: app.data_bundle.yahoo_demo_bundle
+   :members:
+   :special-members: __init__
