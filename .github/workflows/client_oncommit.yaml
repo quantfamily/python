@@ -30,4 +30,4 @@ jobs:
       run:
         cd src/client && python -m pytest 
       env:
-        PYTHON_PATH=src/core
+        PYTHON_PATH: src/core
