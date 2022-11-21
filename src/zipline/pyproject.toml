@@ -1,22 +1,43 @@
+[project]
+name="zipline-foreverbll"
+version="0.0.0"
+description="Zipline API to be use for Foreverbull"
+authors = [{ name = "Henrik Nilsson", email = "henrik@lhjnilsson.com" }]
+requires-python = ">=3.7,<4"
+dependencies= [
+    "zipline-reloaded==2.2.0",
+    "foreverbull-core>=0.1.1",
+    "iso3166<2.1.0",
+    "numpy<1.23.0",
+    "psycopg2-binary>=2.9.3,<3.0.0",
+    "sqlalchemy==1.4.43"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.4,<7.0.0",
+    "pytest-mock>=3.6.1,<4.0.0",
+    "requests_mock>=1.9.3,<2.0.0",
+    "flake8>=5.0.4,<6.0.0",
+    "flake8-pyproject>=1.2.0,<2.0.0",
+    "black>=21.7b0,<30",
+    "isort>=5.9.3,<6.0.0",
+    "pytest-cov"
+]
+
 [build-system]
 requires = [
   "setuptools>=45.0",
-  "setuptools-scm>=6.2.3",
   "wheel",
 ]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools_scm]
-write_to = "app/_version.py"
 
 [tool.flake8]
 max-line-length = 120
 
 [tool.black]
 line-length = 120
-extend-exclude = "app/_version.py"
 
 [tool.isort]
 profile = "black"
-src_paths = ["app", "tests"]
 line_length = 120

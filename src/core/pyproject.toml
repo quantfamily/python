@@ -1,3 +1,26 @@
+[project]
+name="foreverbull-core"
+version="0.0.0"
+description="Core Python functionality for Foreverbull"
+authors = [{ name = "Henrik Nilsson", email = "henrik@lhjnilsson.com" }]
+requires-python = ">=3.7,<4"
+dependencies= [
+    "pydantic>=1.8.2,<2.0.0",
+    "pynng>=0.7.1,<1.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.4,<7.0.0",
+    "pytest-mock>=3.6.1,<4.0.0",
+    "requests_mock>=1.9.3,<2.0.0",
+    "flake8>=5.0.4,<6.0.0",
+    "flake8-pyproject>=1.2.0,<2.0.0",
+    "black>=21.7b0,<30",
+    "isort>=5.9.3,<6.0.0",
+    "pytest-cov"
+]
+
 [build-system]
 requires = [
   "setuptools>=45.0",
@@ -13,5 +36,4 @@ line-length = 120
 
 [tool.isort]
 profile = "black"
-src_paths = ["foreverbull_core", "tests"]
 line_length = 120

@@ -1,0 +1,33 @@
+name: 'OnCommit actions for src/client'
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run:
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools
+        python -m pip install -e src/client[dev]
+    - name: Lint & format check
+      run:
+        flake8 src/client
+        black --check -l 120 src/client
+    - name: Unittest
+      run:
+        cd src/client && python -m pytest 
+      env:
+        PYTHON_PATH=src/core
