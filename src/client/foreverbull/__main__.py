@@ -5,12 +5,13 @@ import socket
 import time
 
 import foreverbull_core.logger
-from foreverbull import Foreverbull
-from foreverbull.environment import EnvironmentParser
 from foreverbull_core import cli
 from foreverbull_core.broker import Broker
 from foreverbull_core.models.backtest import Session
 from foreverbull_core.models.service import RawConnection
+
+from foreverbull import Foreverbull
+from foreverbull.environment import EnvironmentParser
 
 _service_input = cli.ServiceInput()
 _backtets_input = cli.BacktestInput()

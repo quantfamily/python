@@ -2,9 +2,10 @@ import json
 from threading import Thread
 
 import pytest
-from foreverbull import Foreverbull
 from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_core.socket.nanomsg import NanomsgSocket
+
+from foreverbull import Foreverbull
 
 
 @pytest.fixture(scope="function")

@@ -27,7 +27,7 @@ jobs:
         flake8 src/client
         black --check -l 120 src/client
     - name: Unittest
-      run:
+      run: |
         cd src/client && python -m pytest 
       env:
         PYTHON_PATH: src/core

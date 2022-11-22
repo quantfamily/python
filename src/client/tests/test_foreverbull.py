@@ -2,10 +2,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from pytest_mock import MockerFixture
+
 from foreverbull.environment import EnvironmentError, EnvironmentParser
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
-from pytest_mock import MockerFixture
 
 
 def test_on():

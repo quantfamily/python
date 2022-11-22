@@ -3,12 +3,13 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue
 
-from foreverbull.models import OHLC, Configuration
-from foreverbull.worker.worker import WorkerHandler
 from foreverbull_core.models.socket import Request
 from foreverbull_core.socket.client import ContextClient, SocketClient
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
+
+from foreverbull.models import OHLC, Configuration
+from foreverbull.worker.worker import WorkerHandler
 
 
 class Foreverbull(threading.Thread):

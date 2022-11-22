@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from foreverbull import Foreverbull
-from foreverbull.models import OHLC, Configuration, Parameter
 from foreverbull_core.models.finance import Asset, Order
 from foreverbull_core.models.socket import Request, Response
+
+from foreverbull import Foreverbull
+from foreverbull.models import OHLC, Configuration, Parameter
 
 
 def configured_worker(data, dataframe, ma_high, ma_low):

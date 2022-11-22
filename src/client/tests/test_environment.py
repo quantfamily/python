@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+
 from foreverbull.environment import EnvironmentError, EnvironmentParser
 
 

@@ -1,11 +1,12 @@
 import pytest
-from foreverbull import __main__
-from foreverbull.environment import EnvironmentError, EnvironmentParser
 from foreverbull_core.http.backtest import Backtest
 from foreverbull_core.http.service import Service
 from foreverbull_core.models.backtest import Session
 from foreverbull_core.models.service import Instance
 from pytest_mock import MockerFixture
+
+from foreverbull import __main__
+from foreverbull.environment import EnvironmentError, EnvironmentParser
 
 
 def test_run_foreverbull_as_instance(mocker: MockerFixture):

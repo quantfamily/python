@@ -1,13 +1,13 @@
 import logging
 import threading
 
-import zipline
 from foreverbull_core.models.finance import Asset, Order
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.nanomsg import NanomsgSocket
 from foreverbull_core.socket.router import MessageRouter
 
+import zipline
 from app.backtest import Backtest
 from app.feed import Feed
 

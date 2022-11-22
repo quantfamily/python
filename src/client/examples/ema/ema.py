@@ -1,16 +1,19 @@
-from foreverbull_core.models.finance import EndOfDay, Order, Asset
-from pandas.core.frame import DataFrame
-from foreverbull.data.data import Database
-import foreverbull
 import logging
+
 import numpy
+from pandas.core.frame import DataFrame
 from talib import EMA
+
+import foreverbull
+from foreverbull.data.data import Database
+from foreverbull.models import OHLC
 
 bull = foreverbull.Foreverbull()
 
 logger = logging.getLogger(__name__)
 
 print("I AM HERE")
+
 
 def should_hold(df: DataFrame, ema_low, ema_high) -> bool:
     high = EMA(df.price, timeperiod=ema_high)
@@ -21,8 +24,9 @@ def should_hold(df: DataFrame, ema_low, ema_high) -> bool:
         return True
     return False
 
+
 @bull.on("stock_data")
-def ema(tick: EndOfDay, database: Database, ema_low=16, ema_high=32):
+def ema(tick: OHLC, database: Database, ema_low=16, ema_high=32):
     pass
     """ # TODO: FIX THIS
     history = database.stock_data(tick.asset.symbol)

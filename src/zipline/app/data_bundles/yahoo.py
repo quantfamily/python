@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytz
 import yfinance
+
 from zipline.data.bundles import ingest, register
 from zipline.utils.cli import maybe_show_progress
 

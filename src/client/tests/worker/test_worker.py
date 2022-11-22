@@ -1,10 +1,11 @@
 from datetime import datetime
 from multiprocessing import Queue
 
-from foreverbull.models import OHLC, Configuration
-from foreverbull.worker.worker import Worker, WorkerHandler
 from foreverbull_core.models.finance import Order
 from foreverbull_core.models.worker import Parameter
+
+from foreverbull.models import OHLC, Configuration
+from foreverbull.worker.worker import Worker, WorkerHandler
 
 
 def just_return_order_amount_10(*_):

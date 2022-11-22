@@ -6,6 +6,10 @@ from collections import namedtuple
 import pandas as pd
 import pytz
 import six
+
+from app.data_bundles.foreverbull import DatabaseEngine, SQLIngester
+from app.data_bundles.yahoo import Yahoo
+from app.models import EngineConfig, IngestConfig
 from zipline import TradingAlgorithm
 from zipline.data import bundles
 from zipline.data.data_portal import DataPortal
@@ -16,10 +20,6 @@ from zipline.finance.blotter import Blotter
 from zipline.finance.trading import SimulationParameters
 from zipline.utils.calendar_utils import get_calendar
 from zipline.utils.run_algo import BenchmarkSpec, _RunAlgoError
-
-from app.data_bundles.foreverbull import DatabaseEngine, SQLIngester
-from app.data_bundles.yahoo import Yahoo
-from app.models import EngineConfig, IngestConfig
 
 from .exceptions import ConfigError
 

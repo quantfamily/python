@@ -1,12 +1,13 @@
 from datetime import date, datetime
 
 import pytest
-from foreverbull.environment import EnvironmentParser
-from foreverbull.foreverbull import Foreverbull
-from foreverbull.models import OHLC, Configuration
 from foreverbull_core.models.socket import Request, SocketConfig, SocketType
 from foreverbull_core.models.worker import Parameter
 from foreverbull_core.socket.client import SocketClient
+
+from foreverbull.environment import EnvironmentParser
+from foreverbull.foreverbull import Foreverbull
+from foreverbull.models import OHLC, Configuration
 
 
 def on_message(data, dataframe, ma_high, ma_low):

@@ -6,10 +6,10 @@ from foreverbull_core.models.finance import Portfolio
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed
 from foreverbull_core.socket.nanomsg import NanomsgSocket
-from zipline.api import get_datetime
 
 from app.exceptions import EndOfDayError
 from app.models import OHLC
+from zipline.api import get_datetime
 
 
 class Feed:

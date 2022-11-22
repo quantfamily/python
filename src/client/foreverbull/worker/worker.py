@@ -2,11 +2,12 @@ import logging
 import threading
 from multiprocessing import Process, Queue
 
+from foreverbull_core.models.finance import Order
+from foreverbull_core.models.worker import Parameter
+
 from foreverbull.data import Database, DateManager
 from foreverbull.models import OHLC, Configuration
 from foreverbull.worker.exceptions import WorkerException
-from foreverbull_core.models.finance import Order
-from foreverbull_core.models.worker import Parameter
 
 
 class Worker(Process):
