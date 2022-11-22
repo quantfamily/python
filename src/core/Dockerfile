@@ -8,5 +8,6 @@ RUN pip install setuptools --upgrade
 
 WORKDIR /build
 COPY foreverbull_core foreverbull_core
+COPY pyproject.toml .
 
-RUN pip install -e foreverbull_core
+RUN pip install -e .
