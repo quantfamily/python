@@ -1,4 +1,4 @@
-FROM lhjnilsson/foreverbull_core:latest
+FROM python:3.10
 
 RUN apt-get update
 RUN apt-get install -y libhdf5-dev liblapack-dev gfortran cmake build-essential python3-dev automake autoconf
@@ -23,5 +23,10 @@ RUN pip install --upgrade cython
 
 RUN pip install -e .
 RUN pip install -e /build/core
+
+# Install git version of core, TODO: Better way to do this?
+COPY ../core /tmp/core/
+
+RUN pip install -e /tmp/core
 
 CMD ["python", "-m", "app"]
