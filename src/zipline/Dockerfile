@@ -8,7 +8,6 @@ RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 RUN curl -L -o ta-lib-0.4.0-src.tar.gz  http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz 
 RUN tar xvfz ta-lib-0.4.0-src.tar.gz
 WORKDIR /ta-lib
-RUN ls
 RUN cp /usr/share/automake-1.16/config.guess .
 RUN ./configure --prefix=/usr/local
 RUN make
