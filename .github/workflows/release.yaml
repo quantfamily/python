@@ -47,6 +47,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          src: src/zipline/Dockerfile
+          file: src/zipline/Dockerfile
           push: true
           tags: lhjnilsson/foreverbull_zipline:latest 
