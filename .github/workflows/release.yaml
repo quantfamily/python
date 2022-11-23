@@ -31,3 +31,11 @@ jobs:
           context: src/core
           push: true
           tags: lhjnilsson/foreverbull_core:latest  
+      -
+        name: Client
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: src/client
+          push: true
+          tags: lhjnilsson/foreverbull_client:latest 

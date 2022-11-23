@@ -7,7 +7,6 @@ RUN pip install pip --upgrade
 RUN pip install setuptools --upgrade
 
 WORKDIR /build
-COPY foreverbull_core foreverbull_core
-COPY pyproject.toml .
+COPY . core/
 
-RUN pip install -e .
+RUN pip install -e core
