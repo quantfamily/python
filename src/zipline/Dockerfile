@@ -14,19 +14,15 @@ RUN make
 RUN make install
 RUN apt upgrade -y 
 
-WORKDIR /app
-COPY . /app
+WORKDIR /build
+COPY src .
 
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
 RUN pip install --upgrade cython
 
-RUN pip install -e .
-RUN pip install -e /build/core
+RUN pip install -e zipline
+RUN pip install -e core
 
-# Install git version of core, TODO: Better way to do this?
-COPY ../core /tmp/core/
-
-RUN pip install -e /tmp/core
-
+WORKDIR /build/zipline
 CMD ["python", "-m", "app"]

@@ -28,7 +28,8 @@ jobs:
         id: docker_build_core
         uses: docker/build-push-action@v2
         with:
-          context: src/core
+          context: .
+          file: src/core/Dockerfile
           push: true
           tags: lhjnilsson/foreverbull_core:latest  
       -
@@ -36,7 +37,8 @@ jobs:
         id: docker_build_client
         uses: docker/build-push-action@v2
         with:
-          context: src/client
+          context: .
+          file: src/client/Dockerfile
           push: true
           tags: lhjnilsson/foreverbull_client:latest
       -
@@ -44,6 +46,7 @@ jobs:
         id: docker_build_zipline
         uses: docker/build-push-action@v2
         with:
-          context: src/zipline
+          context: .
+          src: src/zipline/Dockerfile
           push: true
           tags: lhjnilsson/foreverbull_zipline:latest 

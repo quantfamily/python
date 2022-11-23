@@ -1,11 +1,13 @@
 FROM python:3.10
 
+RUN apt update
+RUN apt install -y cmake build-essential python-dev
+
+RUN pip install pip --upgrade
+RUN pip install setuptools --upgrade
+
 WORKDIR /build
-COPY . client/
+COPY src .
 
 RUN pip install -e client
-
-# Install git version of core, TODO: Better way to do this?
-COPY ../core /tmp/core/
-
-RUN pip install -e /tmp/core
+RUN pip install -e core
