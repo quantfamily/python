@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM lhjnilsson/foreverbull_core:latest
 
 RUN apt-get update
 RUN apt-get install -y libhdf5-dev liblapack-dev gfortran cmake build-essential python3-dev automake autoconf
@@ -23,6 +23,6 @@ RUN pip install --upgrade setuptools
 RUN pip install --upgrade cython
 
 RUN pip install -e .
-RUN pip install git+https://github.com/quantfamily/foreverbull-core.git@3c0ec3ee44cd702b2e755e9238342006ea215395
+RUN pip install -e /build/core
 
 CMD ["python", "-m", "app"]
