@@ -29,11 +29,11 @@ class Client:
 
 @pytest.fixture
 def backtest():
-    pass
+    yield Backtest()
 
 @pytest.fixture
 def client():
-    pass
+    yield Client()
 
 
 def test_backtest_client_connection(backtest: Backtest, client: Client):
