@@ -5,8 +5,10 @@ RUN apt install -y cmake build-essential python-dev
 
 RUN pip install pip --upgrade
 RUN pip install setuptools --upgrade
+RUN pip install flit
 
 WORKDIR /build
 COPY src .
 
-RUN pip install -e core
+ENV FLIT_ROOT_INSTALL 1
+RUN cd core && flit install && cd ..

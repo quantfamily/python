@@ -20,9 +20,11 @@ COPY src .
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
 RUN pip install --upgrade cython
+RUN pip install flit
 
-RUN pip install -e zipline
-RUN pip install -e core
+ENV FLIT_ROOT_INSTALL 1
+RUN cd zipline && flit install && cd ..
+RUN cd core && flit install && cd ..
 
 WORKDIR /build/zipline
 CMD ["python", "-m", "app"]
