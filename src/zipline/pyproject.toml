@@ -1,12 +1,12 @@
 [project]
-name="zipline-foreverbll"
+name="foreverbull-zipline"
 version="0.0.0"
 description="Zipline API to be use for Foreverbull"
 authors = [{ name = "Henrik Nilsson", email = "henrik@lhjnilsson.com" }]
 requires-python = ">=3.7,<4"
 dependencies= [
     "zipline-reloaded==2.2.0",
-    "foreverbull-core>=0.1.1",
+    "foreverbull-core",
     "iso3166<2.1.0",
     "numpy<1.23.0",
     "psycopg2-binary>=2.9.3,<3.0.0",
@@ -26,11 +26,8 @@ dev = [
 ]
 
 [build-system]
-requires = [
-  "setuptools>=45.0",
-  "wheel",
-]
-build-backend = "setuptools.build_meta"
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
 
 [tool.flake8]
 max-line-length = 120

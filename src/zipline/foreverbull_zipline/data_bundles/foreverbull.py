@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import read_sql_query
 from sqlalchemy import create_engine
 
-from app.models import Database
+from foreverbull_zipline.models import Database
 from zipline.data.bundles import ingest, register
 from zipline.utils.cli import maybe_show_progress
 

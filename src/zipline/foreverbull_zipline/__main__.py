@@ -8,7 +8,7 @@ import time
 import foreverbull_core.logger
 from foreverbull_core.broker import Broker
 
-from app.app import Application
+from foreverbull_zipline.app import Application
 
 log = logging.getLogger()
 
