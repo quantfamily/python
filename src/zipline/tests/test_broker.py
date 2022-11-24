@@ -1,7 +1,7 @@
 import pytest
 from foreverbull_core.models.finance import OrderStatus
 
-from app.exceptions import BrokerError
+from foreverbull_zipline.exceptions import BrokerError
 
 
 @pytest.mark.skip(reason="still dont know how to test this, TODO")

@@ -8,8 +8,8 @@ from foreverbull_core.socket.nanomsg import NanomsgSocket
 from foreverbull_core.socket.router import MessageRouter
 
 import zipline
-from app.backtest import Backtest
-from app.feed import Feed
+from foreverbull_zipline.backtest import Backtest
+from foreverbull_zipline.feed import Feed
 
 from .exceptions import BrokerError
 

@@ -1,5 +1,5 @@
 [project]
-name="zipline-foreverbll"
+name="foreverbull-zipline"
 version="0.0.0"
 description="Zipline API to be use for Foreverbull"
 authors = [{ name = "Henrik Nilsson", email = "henrik@lhjnilsson.com" }]

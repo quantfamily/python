@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from app.exceptions import EndOfDayError
-from app.feed import Feed
+from foreverbull_zipline.exceptions import EndOfDayError
+from foreverbull_zipline.feed import Feed
 
 
 def test_start_stop(backtest):

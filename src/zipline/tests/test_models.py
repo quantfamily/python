@@ -1,6 +1,6 @@
 from foreverbull_core.models.socket import SocketConfig, SocketType
 
-from app.models import EngineConfig, Period, Result, Sockets
+from foreverbull_zipline.models import EngineConfig, Period, Result, Sockets
 
 
 def test_info():

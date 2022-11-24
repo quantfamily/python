@@ -4,8 +4,8 @@ from foreverbull_core.broker import Broker
 from foreverbull_core.models.finance import Asset, Order
 from foreverbull_core.models.socket import Request, Response
 
-from app.app import Application
-from app.models import EngineConfig, IngestConfig
+from foreverbull_zipline.app import Application
+from foreverbull_zipline.models import EngineConfig, IngestConfig
 from tests.conftest import foreverbull_bundle, yahoo_bundle
 from tests.factories import populate_sql
 

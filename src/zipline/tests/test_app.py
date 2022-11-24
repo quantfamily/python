@@ -3,8 +3,8 @@ import time
 import pytest
 from foreverbull_core.broker import Broker
 
-from app.app import Application
-from app.backtest import Backtest
+from foreverbull_zipline.app import Application
+from foreverbull_zipline.backtest import Backtest
 
 
 @pytest.fixture(scope="function")

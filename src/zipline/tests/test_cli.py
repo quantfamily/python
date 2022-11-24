@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 from foreverbull_core.broker import Broker
 
-import app.__main__ as main
+import foreverbull_zipline.__main__ as main
 
 
 def test_from_arguments():
