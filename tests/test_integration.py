@@ -100,7 +100,6 @@ class Backtest:
         while True:
             data = self.feed_socket.recv()
             msg = Request.load(data)
-            print("MSG: ", msg)
             if msg.task == "day_completed":
                 req = Request(task="continue")
                 self.request_socket.send(req.dump())
@@ -113,6 +112,7 @@ class Backtest:
 
 
 def on_message(data, dataframe, *args, **kwargs):
+    print("GOT MESSAGE", data, dataframe)
     return
 
 
@@ -163,7 +163,6 @@ def client():
     input_parser.service_instance = input_parser.get_service_instance(input_parser.broker)
     fb = Foreverbull(input_parser.broker.socket, 1)
     fb._worker_routes["stock_data"] = on_message
-
     fb.start()
 
     host = input_parser.broker.socket_config.host
@@ -172,6 +171,7 @@ def client():
     socket.recv_timeout = 5000
     socket.send_timeout = 5000
     yield Client(fb, socket)
+
     fb.stop()
     fb.join()
 
