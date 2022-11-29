@@ -27,4 +27,4 @@ RUN cd zipline && flit install && cd ..
 RUN cd core && flit install && cd ..
 
 WORKDIR /build/zipline
-CMD ["python", "-m", "app"]
+CMD ["python", "-m", "foreverbull_zipline"]
