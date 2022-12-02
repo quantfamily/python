@@ -1,15 +1,14 @@
-FROM python:3.9
+FROM lhjnilsson/foreverbull_client:latest
 
 RUN apt-get update 
 RUN apt-get install cmake build-essential python-dev -y
 
 RUN pip install pip --upgrade
-RUN pip install foreverbull --upgrade
 
+WORKDIR /build
 RUN curl -L -o ta-lib-0.4.0-src.tar.gz  http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz 
 RUN tar xvfz ta-lib-0.4.0-src.tar.gz
-WORKDIR /ta-lib
-RUN ls
+WORKDIR /build/ta-lib
 RUN cp /usr/share/automake-1.16/config.guess .
 RUN ./configure --prefix=/usr/local
 RUN make
@@ -18,15 +17,9 @@ RUN apt upgrade -y
 
 RUN pip install ta-lib
 
-WORKDIR /app
-WORKDIR /app/foreverbull
-COPY . /app/foreverbull/
+WORKDIR /algos
+COPY ema.py ema.py
 
-RUN pip install -e .
 RUN pip install ta-lib
 
-COPY examples/ema/ema.py /app/foreverbull/examples/ema.py
-
-ENV PYTHONPATH="${PYTHONPATH}:/app"
-
-ENTRYPOINT [ "foreverbull", "run", "examples/ema.py" ]
+CMD [ "python", "-m", "foreverbull", "run", "ema.py" ]
