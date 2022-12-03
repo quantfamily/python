@@ -125,7 +125,7 @@ def on_message(data, dataframe, *args, **kwargs):
 class Client:
     def __init__(self, foreverbull: Foreverbull, socket: pynng.Req0) -> None:
         self.foreverbull = foreverbull
-        self.socket = socket
+        self.socket: pynng.Socket = socket
 
     def configure(self, config: Configuration) -> None:
         req = Request(task="configure", data=config)
@@ -216,9 +216,11 @@ def test_backtest_client_connection(backtest: Backtest, client: Client):
     client.configure(worker_config)
 
     for message in backtest.run():
+        print("message", message, flush=True)
         if message.task == "stock_data":
             client.process(message.data)
         if message.task == "day_completed":
             backtest.continue_()
         if message.task == "backtest_completed":
+            print("------ BACKTEST COMPLETED -------")
             break
