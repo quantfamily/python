@@ -212,4 +212,8 @@ def test_backtest_client_connection(backtest: Backtest, client: Client):
     for message in backtest.run():
         # print("message: ", message)
         if message.task == "stock_data":
-            client.process(message.data)
+            try:
+                client.process(message.data)
+            except Exception as exc:
+                print("ERROR", exc)
+                return
