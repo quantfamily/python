@@ -32,7 +32,7 @@ class Application(threading.Thread):
         self._router.add_route(self._run, "run")
         self._router.add_route(self._continue, "continue")
         self._router.add_route(self._status, "status")
-        self._router.add_route(self._stop, "_stop")
+        self._router.add_route(self._stop, "stop")
         self._router.add_route(self._result, "result")
         self._stop_lock = threading.Lock()
         self.backtest: Backtest = Backtest()
