@@ -110,6 +110,12 @@ class Backtest:
                 break
             yield msg
 
+    def continue_(self) -> None:
+        req = Request(task="continue")
+        self.request_socket.send(req.dump())
+        rsp_data = self.request_socket.recv()
+        rsp = Response.load(rsp_data)
+        assert rsp.error is None
 
 def on_message(data, dataframe, *args, **kwargs):
     print("GOT MESSAGE", data, dataframe)
@@ -210,10 +216,9 @@ def test_backtest_client_connection(backtest: Backtest, client: Client):
     client.configure(worker_config)
 
     for message in backtest.run():
-        # print("message: ", message)
         if message.task == "stock_data":
-            try:
-                client.process(message.data)
-            except Exception as exc:
-                print("ERROR", exc)
-                return
+            client.process(message.data)
+        if message.task == "day_completed":
+            backtest.continue_()
+        if message.task == "backtest_completed":
+            break
