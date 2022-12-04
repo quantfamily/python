@@ -29,6 +29,7 @@ class Foreverbull(threading.Thread):
         return decorator
 
     def run(self):
+        self._socket = SocketClient(self.socket_config)
         self.running = True
         self.logger.info("Starting instance")
         socket = SocketClient(self.socket_config)
