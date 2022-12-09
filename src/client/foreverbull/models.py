@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 
 from foreverbull_core.models.base import Base
+from foreverbull_core.models.socket import SocketConfig
 from foreverbull_core.models.worker import Database, Parameter
 
 
@@ -19,6 +20,7 @@ class Configuration(Base):
     execution_end_date: date
     database: Optional[Database]
     parameters: Optional[List[Parameter]]
+    socket: SocketConfig
 
 
 class OHLC(Base):

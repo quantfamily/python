@@ -42,9 +42,14 @@ def sleep_till_keyboard_interrupt(fb: Foreverbull):
 
 
 def run_foreverbull(env: EnvironmentParser):
-    fb = Foreverbull(env.broker.socket, env.executors)
+    fb = Foreverbull(env.broker.socket_config, env.executors)
     env.import_algo_file()
     fb.start()
+
+    while not env.broker.socket_config.port:
+        time.sleep(0.2)
+
+    print("NOT IW", env.broker.socket_config.port)
 
     try:
         if True:

@@ -15,4 +15,3 @@ class Broker:
         self._local_host = local_host
         self.http = HTTPClient(self._broker_host)
         self.socket_config = SocketConfig(host=self._local_host)
-        self.socket = SocketClient(self.socket_config)

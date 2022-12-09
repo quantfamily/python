@@ -3,25 +3,24 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue
 
-from foreverbull_core.models.socket import Request
-from foreverbull_core.socket.client import ContextClient, SocketClient
+from foreverbull_core.models.socket import Request, Response
+from foreverbull_core.socket.client import ContextClient, SocketClient, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
 
 from foreverbull.models import OHLC, Configuration
-from foreverbull.worker.worker import WorkerHandler
 
 
 class Foreverbull(threading.Thread):
     _worker_routes = {}
 
-    def __init__(self, socket: SocketClient = None, executors: int = 1):
-        self.socket = socket
+    def __init__(self, socket_config: SocketConfig = None, executors: int = 1):
+        self.socket_config = socket_config
         self.running = False
         self.logger = logging.getLogger(__name__)
         self._worker_requests = Queue()
         self._worker_responses = Queue()
-        self._workers: list[WorkerHandler] = []
+        self._workers = []
         self.executors = executors
         self._routes = MessageRouter()
         self._routes.add_route(self.stop, "backtest_completed")
@@ -41,11 +40,17 @@ class Foreverbull(threading.Thread):
     def run(self):
         self.running = True
         self.logger.info("Starting instance")
+        self.logger.info(f"CONFIG: {self.socket_config}")
+        socket = SocketClient(self.socket_config)
         while self.running:
             try:
-                context_socket = self.socket.new_context()
+                self.logger.info("Getting context socket")
+                context_socket = socket.new_context()
+                self.logger.info("Context socket recieved")
                 request = context_socket.recv()
-                self._request_thread.submit(self._process_request, context_socket, request)
+                response = self._process_request(request)
+                context_socket.send(response)
+                context_socket.close()
             except SocketTimeout:
                 pass
             except SocketClosed as exc:
@@ -54,13 +59,10 @@ class Foreverbull(threading.Thread):
                 return
         self.logger.info("exiting")
 
-    def _process_request(self, socket: ContextClient, request: Request):
+    def _process_request(self, request: Request) -> Response:
         try:
             self.logger.debug(f"recieved task: {request.task}")
-            response = self._routes(request)
-            socket.send(response)
-            self.logger.debug(f"reply sent for task: {response.task}")
-            socket.close()
+            return self._routes(request)
         except (SocketTimeout, SocketClosed) as exc:
             self.logger.warning(f"Unable to process context socket: {exc}")
             pass

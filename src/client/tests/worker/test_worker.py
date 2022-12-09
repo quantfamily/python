@@ -1,52 +1,47 @@
 from datetime import datetime
-from multiprocessing import Queue
-
+from multiprocessing import Queue, Event
+from pynng import Req0
 from foreverbull_core.models.finance import Order
 from foreverbull_core.models.worker import Parameter
+from foreverbull_core.models.socket import SocketConfig, Request, Response
 
 from foreverbull.models import OHLC, Configuration
-from foreverbull.worker.worker import Worker, WorkerHandler
+from foreverbull.worker.worker import Worker, WorkerPool
+import pytest
 
+@pytest.fixture
+def server_socket_config():
+    return SocketConfig(host="127.0.0.1", port=5656, listen=True)
 
-def just_return_order_amount_10(*_):
-    return Order(amount=10)
+@pytest.fixture
+def client_socket_config():
+    return SocketConfig(host="127.0.0.1", port=5656, listen=False)
 
-
-def test_setup_parameters_is_None():
-    req = Queue()
-    rsp = Queue()
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now()
+@pytest.fixture
+def client_config(client_socket_config):
+    return Configuration(
+        execution_id="test",
+        execution_start_date=datetime.now(),
+        execution_end_date=datetime.now(),
+        database=None,
+        parameters=None,
+        socket=client_socket_config,
     )
-    worker = Worker(req, rsp, worker_conf)
 
-    assert len(worker.parameters) == 0
+def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
+    return None
 
+def test_worker(client_config, server_socket_config):
+    event = Event()
 
-def test_setup_parameters():
-    req = Queue()
-    rsp = Queue()
-    param1 = Parameter(key="key1", value=22, default=11)
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now(), parameters=[param1]
-    )
-    worker = Worker(req, rsp, worker_conf)
+    worker = Worker(client_config, event, ohlc=plain_ohlc_function)
+    worker.start()
 
-    assert len(worker.parameters) == 1
+    server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
+    server_socket.recv_timeout = 1000
+    server_socket.send_timeout = 1000
 
-
-def test_worker_process_request():
-    order_to_return = Order(amount=1337)
-
-    def on_update(ohlc, _):
-        assert type(ohlc) == OHLC
-        return order_to_return
-
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now()
-    )
-    worker = Worker(None, None, worker_conf, **{"stock_data": on_update})
-
+    context = server_socket.new_context()
     ohlc = OHLC(
         isin="ISIN11223344",
         price=133.7,
@@ -57,65 +52,45 @@ def test_worker_process_request():
         volume=9001,
         time=datetime.now(),
     )
+    request = Request(task="ohlc", data=ohlc)
 
-    assert worker._process_request(ohlc) == order_to_return
+    context.send(request.dump())
+    response = Response.load(context.recv())
+    context.close()
+    server_socket.close()
 
+    assert response.task == request.task
 
-def test_worker_process_start_stop():
-    queue = Queue()
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now()
-    )
-    worker = Worker(queue, 123, worker_conf)
-    worker.start()
-    queue.put(None)
+    event.set()
     worker.join()
 
+def test_worker_pool(client_config, server_socket_config):
+    worker_pool = WorkerPool(client_config, ohlc=plain_ohlc_function)
+    worker_pool.start()
 
-def test_worker_handler_lock():
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now()
-    )
-    wh = WorkerHandler(worker_conf)
+    server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
+    server_socket.recv_timeout = 1000
+    server_socket.send_timeout = 1000
 
-    # Check if locked after init, acquire and make sure its locked
-    assert wh.locked() is False
-    assert wh.acquire() is True
-    assert wh.locked() is True
+    for _ in range(16):
+        ohlc = OHLC(
+            isin="ISIN11223344",
+            price=133.7,
+            open=133.6,
+            close=1337.8,
+            high=1337.8,
+            low=1337.6,
+            volume=9001,
+            time=datetime.now(),
+        )
+        context = server_socket.new_context()
+        request = Request(task="ohlc", data=ohlc)
 
-    # second acquire should not work
-    assert wh.acquire() is False
+        context.send(request.dump())
+        response = Response.load(context.recv())
+        context.close()
 
-    # release and check its not locked anymore
-    wh.release()
-    assert wh.locked() is False
-    wh.stop()
-
-
-def test_worker_handler():
-    ohlc = OHLC(
-        isin="ISIN11223344",
-        price=133.7,
-        open=133.6,
-        close=1337.8,
-        high=1337.8,
-        low=1337.6,
-        volume=9001,
-        time=datetime.now(),
-    )
-    response = Order(amount=10)
-
-    worker_conf = Configuration(
-        execution_id=123, execution_start_date=datetime.now(), execution_end_date=datetime.now()
-    )
-    wh = WorkerHandler(worker_conf, stock_data=just_return_order_amount_10)
-
-    assert wh.locked() is False
-    wh.acquire(False, -1)
-
-    result = wh.process(ohlc)
-
-    wh.release()
-    wh.stop()
-
-    assert result == response
+        assert response.task == request.task
+    
+    worker_pool.stop()
+    server_socket.close()
