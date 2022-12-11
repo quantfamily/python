@@ -17,8 +17,8 @@ dev = [
     "pytest>=6.2.4,<7.0.0",
     "pytest-mock>=3.6.1,<4.0.0",
     "requests_mock>=1.9.3,<2.0.0",
-    "flake8>=5.0.4,<6.0.0",
-    "flake8-pyproject>=1.2.0,<2.0.0",
+    "flake8>=6.0.0,<7.0.0",
+    "flake8-pyproject>=1.2.2,<2.0.0",
     "black>=21.7b0,<30",
     "isort>=5.9.3,<6.0.0",
     "pytest-cov"

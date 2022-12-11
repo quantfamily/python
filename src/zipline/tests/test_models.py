@@ -1,5 +1,4 @@
 from foreverbull_core.models.socket import SocketConfig, SocketType
-
 from foreverbull_zipline.models import EngineConfig, Period, Result, Sockets
 
 

@@ -1,7 +1,6 @@
 import pytest
 import requests
 import requests_mock
-
 from foreverbull_core.http import RequestError
 from foreverbull_core.http.service import Service
 from foreverbull_core.models import service

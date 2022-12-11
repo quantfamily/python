@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import pandas
-
 from foreverbull.data.data import Database, DateManager
 from foreverbull.data.stock_data import Instrument, Portfolio, Position
 

@@ -1,71 +1,63 @@
 from datetime import datetime
-from pathlib import Path
 
 import pytest
-from pytest_mock import MockerFixture
-
-from foreverbull.environment import EnvironmentError, EnvironmentParser
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
+from foreverbull_core.models.socket import Request, Response, SocketConfig
+from pynng import Req0
 
 
-def test_on():
-    route = Foreverbull.on("stock_data")
-    route("hello")
-    assert "stock_data" in Foreverbull._worker_routes
-    assert Foreverbull._worker_routes["stock_data"] == "hello"
+@pytest.fixture
+def client_socket_config():
+    return SocketConfig(host="127.0.0.1", port=5656, listen=True)
 
 
-def test_setup_worker():
-    pyfile = """
-from foreverbull import Foreverbull
-
-@Foreverbull.on("magic_data")
-def magic_func(*args):
-    pass
-    """
-
-    demo_file = Path("demo.py")
-    with open(demo_file.name, "w") as fw:
-        fw.write(pyfile)
-    input = EnvironmentParser()
-    input.algo_file = demo_file.name
-    input.import_algo_file()
-
-    assert "magic_data" in Foreverbull._worker_routes
-    demo_file.unlink()
-    Foreverbull._worker_routes = {}
+@pytest.fixture
+def server_socket():
+    return Req0(listen="tcp://127.0.0.1:5757")
 
 
-def test_setup_worker_negative():
-    input_parser = EnvironmentParser()
-
-    with pytest.raises(EnvironmentError):
-        input_parser.import_algo_file()
-
-    with pytest.raises(EnvironmentError):
-        input_parser.algo_file = "non_file.py"
-        input_parser.import_algo_file()
-
-
-def test_configure_and_completed():
-    configuration = Configuration(
-        execution_id="123", execution_start_date=datetime.now(), execution_end_date=datetime.now(), parameters=[]
+@pytest.fixture
+def configuration():
+    return Configuration(
+        execution_id="test",
+        execution_start_date=datetime.now(),
+        execution_end_date=datetime.now(),
+        database=None,
+        parameters=None,
+        socket=SocketConfig(host="127.0.0.1", port=5757, listen=False, recv_timeout=200, send_timeout=200),
     )
-    fb = Foreverbull()
-    Foreverbull._worker_routes = {}
-    fb.executors = 2
-    fb._configure(configuration)
-    assert len(fb._workers) == 2
-    fb.stop()
-    assert len(fb._workers) == 0
 
 
-def test_start_stop(mocker: MockerFixture):
-    input = EnvironmentParser()
-    broker = input.get_broker()
-    fb = Foreverbull(broker.socket, 1)
+def test_configure_and_stop(client_socket_config, configuration):
+    fb = Foreverbull(client_socket_config)
 
     fb.start()
+    fb.configure(configuration)
     fb.stop()
+    fb.join()
+
+
+def test_configure_and_stop_over_socket(client_socket_config, configuration):
+    fb = Foreverbull(client_socket_config)
+    fb.start()
+
+    socket = Req0(dial=f"tcp://{client_socket_config.host}:{client_socket_config.port}")
+    socket.recv_timeout = 5000
+    socket.send_timeout = 5000
+
+    context = socket.new_context()
+    context.send(Request(task="configure", data=configuration).dump())
+    response = Response.load(context.recv())
+    context.close()
+    assert response.task == "configure"
+    assert response.error is None
+
+    context = socket.new_context()
+    context.send(Request(task="stop").dump())
+    response = Response.load(context.recv())
+    context.close()
+    assert response.task == "stop"
+    assert response.error is None
+
     fb.join()

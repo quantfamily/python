@@ -2,7 +2,6 @@ import time
 
 import pytest
 from foreverbull_core.broker import Broker
-
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.backtest import Backtest
 

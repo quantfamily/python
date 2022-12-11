@@ -1,10 +1,9 @@
 import os
 from unittest import mock
 
+import foreverbull_zipline.__main__ as main
 import pytest
 from foreverbull_core.broker import Broker
-
-import foreverbull_zipline.__main__ as main
 
 
 def test_from_arguments():

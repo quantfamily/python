@@ -1,7 +1,6 @@
 from typing import List
 
 import requests
-
 from foreverbull_core.models import service
 from foreverbull_core.models.socket import SocketConfig
 

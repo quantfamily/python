@@ -1,7 +1,6 @@
 from typing import List
 
 import requests
-
 from foreverbull_core.http import RequestError
 from foreverbull_core.models import backtest, service
 

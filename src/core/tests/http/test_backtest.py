@@ -1,7 +1,6 @@
 import pytest
 import requests
 import requests_mock
-
 from foreverbull_core.http import RequestError
 from foreverbull_core.http.backtest import Backtest
 from foreverbull_core.models.backtest import Config, EngineConfig, Session

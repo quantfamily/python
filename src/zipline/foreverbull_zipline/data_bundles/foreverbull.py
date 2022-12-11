@@ -4,10 +4,10 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from foreverbull_zipline.models import Database
 from pandas import read_sql_query
 from sqlalchemy import create_engine
 
-from foreverbull_zipline.models import Database
 from zipline.data.bundles import ingest, register
 from zipline.utils.cli import maybe_show_progress
 

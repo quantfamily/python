@@ -31,3 +31,4 @@ jobs:
         cd src/client && python -m pytest 
       env:
         PYTHON_PATH: src/core
+        THREADED_EXECUTION: 1

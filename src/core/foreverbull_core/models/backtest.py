@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import validator
-
 from foreverbull_core.models import worker
 from foreverbull_core.models.base import Base
 from foreverbull_core.models.socket import SocketConfig
+from pydantic import validator
 
 
 class Execution(Base):

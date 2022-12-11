@@ -1,12 +1,11 @@
 import logging
 
-import numpy
-from pandas.core.frame import DataFrame
-from talib import EMA
-
 import foreverbull
+import numpy
 from foreverbull.data.data import Database
 from foreverbull.models import OHLC
+from pandas.core.frame import DataFrame
+from talib import EMA
 
 bull = foreverbull.Foreverbull()
 

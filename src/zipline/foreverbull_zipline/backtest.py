@@ -6,10 +6,10 @@ from collections import namedtuple
 import pandas as pd
 import pytz
 import six
-
 from foreverbull_zipline.data_bundles.foreverbull import DatabaseEngine, SQLIngester
 from foreverbull_zipline.data_bundles.yahoo import Yahoo
 from foreverbull_zipline.models import EngineConfig, IngestConfig
+
 from zipline import TradingAlgorithm
 from zipline.data import bundles
 from zipline.data.data_portal import DataPortal

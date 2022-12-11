@@ -1,51 +1,45 @@
-import json
-from threading import Thread
+import os
+from datetime import date
 
 import pytest
-from foreverbull_core.models.socket import Request, Response, SocketConfig
-from foreverbull_core.socket.nanomsg import NanomsgSocket
-
-from foreverbull import Foreverbull
+from foreverbull.models import Configuration
+from foreverbull_core.models.socket import SocketConfig
 
 
-@pytest.fixture(scope="function")
-def sample_data():
-    with open("tests/sample_data.json", "r") as fr:
-        data = json.load(fr)
-    for pair in data:
-        pair["req"] = Request(**pair["req"])
-        pair["rsp"] = Response(**pair["rsp"])
-    return data
+@pytest.fixture
+def server_socket_config():
+    return SocketConfig(host="127.0.0.1", port=5656, listen=True)
 
 
-def demo(x, y):
+@pytest.fixture
+def client_socket_config():
+    return SocketConfig(host="127.0.0.1", port=5656, listen=False)
+
+
+@pytest.fixture
+def client_config(client_socket_config):
+    return Configuration(
+        execution_id="test",
+        execution_start_date=date.today(),
+        execution_end_date=date.today(),
+        database=None,
+        parameters=None,
+        socket=client_socket_config,
+    )
+
+
+@pytest.fixture
+def algo_file():
+    py_code = """
+import foreverbull
+
+fb = foreverbull.Foreverbull()
+
+@fb.on("ohlc")
+def hello(*args, **kwargs):
     pass
-
-
-@pytest.fixture(scope="function")
-def session():
-    Foreverbull._routes["stock_data"] = demo
-    backtest = Foreverbull()
-    t1 = Thread(target=backtest._on_message)
-    local_session = LocalSession(backtest.broker.local_connection()["port"])
-
-    def session():
-        t1.start()
-        return local_session
-
-    yield session
-    t1.join()
-
-
-class LocalSession:
-    def __init__(self, port):
-        self.host = "127.0.0.1"
-        self.port = port
-        self.config = SocketConfig(socket_type="requester", host=self.host, port=self.port, listen=False)
-        self.socket = NanomsgSocket(self.config)
-
-    def send(self, message):
-        return self.socket.send(message)
-
-    def recv(self):
-        return self.socket.recv()
+    """
+    with open("test_file.py", "w") as fw:
+        fw.write(py_code)
+    yield "test_file"
+    os.remove("test_file.py")

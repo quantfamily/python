@@ -1,5 +1,4 @@
 import pytest
-
 from foreverbull_zipline.backtest import Backtest
 from foreverbull_zipline.exceptions import ConfigError
 from tests.factories import populate_sql

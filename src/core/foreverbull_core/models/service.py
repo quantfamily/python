@@ -2,7 +2,6 @@ import enum
 from typing import Optional
 
 import pydantic
-
 from foreverbull_core.models.base import Base
 
 
