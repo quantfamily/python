@@ -18,8 +18,8 @@ def test_simple_simulation(algo_file, client_config, server_socket_config):
     input_parser.parse(args)
 
     server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
-    server_socket.recv_timeout = 10000
-    server_socket.send_timeout = 10000
+    server_socket.recv_timeout = 100000
+    server_socket.send_timeout = 100000
 
     fb = Foreverbull(input_parser.get_broker().socket_config)
     fb.start()
@@ -27,8 +27,8 @@ def test_simple_simulation(algo_file, client_config, server_socket_config):
     request_socket = Req0(
         dial=f"tcp://{input_parser.get_broker().socket_config.host}:{input_parser.get_broker().socket_config.port}"
     )
-    request_socket.recv_timeout = 10000
-    request_socket.send_timeout = 10000
+    request_socket.recv_timeout = 100000
+    request_socket.send_timeout = 100000
 
     request_context = request_socket.new_context()
     request_context.send(Request(task="configure", data=client_config).dump())
