@@ -1,35 +1,16 @@
 from datetime import datetime
-from multiprocessing import Queue, Event
+from multiprocessing import Event
+
+from foreverbull_core.models.socket import Request, Response
 from pynng import Req0
-from foreverbull_core.models.finance import Order
-from foreverbull_core.models.worker import Parameter
-from foreverbull_core.models.socket import SocketConfig, Request, Response
 
-from foreverbull.models import OHLC, Configuration
+from foreverbull.models import OHLC
 from foreverbull.worker.worker import Worker, WorkerPool
-import pytest
 
-@pytest.fixture
-def server_socket_config():
-    return SocketConfig(host="127.0.0.1", port=5656, listen=True)
-
-@pytest.fixture
-def client_socket_config():
-    return SocketConfig(host="127.0.0.1", port=5656, listen=False)
-
-@pytest.fixture
-def client_config(client_socket_config):
-    return Configuration(
-        execution_id="test",
-        execution_start_date=datetime.now(),
-        execution_end_date=datetime.now(),
-        database=None,
-        parameters=None,
-        socket=client_socket_config,
-    )
 
 def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
     return None
+
 
 def test_worker(client_config, server_socket_config):
     event = Event()
@@ -64,6 +45,7 @@ def test_worker(client_config, server_socket_config):
     event.set()
     worker.join()
 
+
 def test_worker_pool(client_config, server_socket_config):
     worker_pool = WorkerPool(client_config, ohlc=plain_ohlc_function)
     worker_pool.start()
@@ -91,6 +73,6 @@ def test_worker_pool(client_config, server_socket_config):
         context.close()
 
         assert response.task == request.task
-    
+
     worker_pool.stop()
     server_socket.close()

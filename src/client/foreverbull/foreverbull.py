@@ -1,32 +1,24 @@
 import logging
 import threading
-from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Queue
 
-from foreverbull_core.models.socket import Request, Response
-from foreverbull_core.socket.client import ContextClient, SocketClient, SocketConfig
+from foreverbull_core.socket.client import SocketClient, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
 
-from foreverbull.models import OHLC, Configuration
+from foreverbull.models import Configuration
+from foreverbull.worker import WorkerPool
 
 
 class Foreverbull(threading.Thread):
     _worker_routes = {}
 
-    def __init__(self, socket_config: SocketConfig = None, executors: int = 1):
+    def __init__(self, socket_config: SocketConfig = None):
         self.socket_config = socket_config
         self.running = False
         self.logger = logging.getLogger(__name__)
-        self._worker_requests = Queue()
-        self._worker_responses = Queue()
-        self._workers = []
-        self.executors = executors
         self._routes = MessageRouter()
-        self._routes.add_route(self.stop, "backtest_completed")
-        self._routes.add_route(self._configure, "configure", Configuration)
-        self._routes.add_route(self._stock_data, "stock_data", OHLC)
-        self._request_thread: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=5)
+        self._routes.add_route(self.stop, "stop")
+        self._routes.add_route(self.configure, "configure", Configuration)
         threading.Thread.__init__(self)
 
     @staticmethod
@@ -40,62 +32,33 @@ class Foreverbull(threading.Thread):
     def run(self):
         self.running = True
         self.logger.info("Starting instance")
-        self.logger.info(f"CONFIG: {self.socket_config}")
         socket = SocketClient(self.socket_config)
+        context_socket = None
+        self.logger.info("Listening on {}:{}".format(self.socket_config.host, self.socket_config.port))
         while self.running:
             try:
                 self.logger.info("Getting context socket")
                 context_socket = socket.new_context()
                 self.logger.info("Context socket recieved")
                 request = context_socket.recv()
-                response = self._process_request(request)
+                response = self._routes(request)
                 context_socket.send(response)
                 context_socket.close()
             except SocketTimeout:
-                pass
+                context_socket.close()
             except SocketClosed as exc:
                 self.logger.exception(exc)
                 self.logger.info("main socket closed, exiting")
-                return
+        socket.close()
         self.logger.info("exiting")
 
-    def _process_request(self, request: Request) -> Response:
-        try:
-            self.logger.debug(f"recieved task: {request.task}")
-            return self._routes(request)
-        except (SocketTimeout, SocketClosed) as exc:
-            self.logger.warning(f"Unable to process context socket: {exc}")
-            pass
-        except Exception as exc:
-            self.logger.error("unknown excetion when processing context socket")
-            self.logger.exception(exc)
+    def configure(self, configuration: Configuration) -> None:
+        self.logger.info("Configuring instance")
+        self._worker_pool = WorkerPool(configuration, **self._worker_routes)
+        self._worker_pool.start()
+        return None
 
     def stop(self):
         self.logger.info("Stopping instance")
+        self._worker_pool.stop()
         self.running = False
-        for worker in self._workers:
-            worker.stop()
-        self._workers = []
-
-    def _configure(self, instance_configuration: Configuration):
-        for _ in range(self.executors):
-            w = WorkerHandler(instance_configuration, **self._worker_routes)
-            self._workers.append(w)
-        return
-
-    def _stock_data(self, message: OHLC):
-        if not self._workers:
-            raise Exception("workers are not initialized")
-
-        for worker in self._workers:
-            # TODO: Fix a way to acquire first from pool of workers
-            if worker.acquire(blocking=True):
-                break
-
-        try:
-            worker.process(message)
-        except Exception as exc:
-            self.logger.error("Error processing to worker")
-            self.logger.exception(exc)
-
-        worker.release()

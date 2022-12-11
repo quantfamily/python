@@ -1,13 +1,10 @@
 import logging
-import threading
-from multiprocessing import Event, Process, Queue
+from multiprocessing import Event, Process
 
-from foreverbull_core.models.finance import Order
-from foreverbull_core.models.socket import Request, Response
+from foreverbull_core.models.socket import Response
 from foreverbull_core.models.worker import Parameter
-from foreverbull_core.socket.client import ContextClient, SocketClient
+from foreverbull_core.socket.client import SocketClient
 from foreverbull_core.socket.exceptions import SocketTimeout
-from pynng.exceptions import Timeout
 
 from foreverbull.data import Database, DateManager
 from foreverbull.models import OHLC, Configuration

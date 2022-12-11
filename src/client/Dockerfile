@@ -14,3 +14,7 @@ COPY src .
 ENV FLIT_ROOT_INSTALL 1
 RUN cd client && flit install && cd ..
 RUN cd core && flit install && cd ..
+
+RUN echo "" >> ema.py
+
+CMD [ "python", "-m", "foreverbull", "run", "ema.py" ]

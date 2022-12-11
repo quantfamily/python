@@ -1,6 +1,5 @@
 from foreverbull_core.http import HTTPClient
 from foreverbull_core.models.socket import SocketConfig
-from foreverbull_core.socket.client import SocketClient
 
 
 class Broker:
@@ -14,4 +13,4 @@ class Broker:
         self._broker_host = broker_host
         self._local_host = local_host
         self.http = HTTPClient(self._broker_host)
-        self.socket_config = SocketConfig(host=self._local_host)
+        self.socket_config = SocketConfig(host=self._local_host, port=5555)
