@@ -1,5 +1,6 @@
 import logging
-from multiprocessing import Event, Process
+from multiprocessing import Event
+from threading import Thread
 
 from foreverbull_core.models.socket import Response
 from foreverbull_core.models.worker import Parameter
@@ -11,7 +12,7 @@ from foreverbull.models import OHLC, Configuration
 from foreverbull.worker.exceptions import WorkerException
 
 
-class Worker(Process):
+class Worker(Thread):
     def __init__(self, configuration: Configuration, stop_event: Event, **routes):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("setting up worker")
