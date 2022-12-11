@@ -1,6 +1,8 @@
 import logging
-from multiprocessing import Event
+from multiprocessing import Event, Process
 from threading import Thread
+import os
+
 
 from foreverbull_core.models.socket import Response
 from foreverbull_core.models.worker import Parameter
@@ -12,7 +14,7 @@ from foreverbull.models import OHLC, Configuration
 from foreverbull.worker.exceptions import WorkerException
 
 
-class Worker(Thread):
+class Worker:
     def __init__(self, configuration: Configuration, stop_event: Event, **routes):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("setting up worker")
@@ -71,6 +73,14 @@ class Worker(Thread):
                 break
 
 
+class WorkerThread(Worker, Thread):
+    pass
+
+
+class WorkerProcess(Worker, Process):
+    pass
+
+
 class WorkerPool:
     def __init__(self, configuration: Configuration, **routes):
         self.logger = logging.getLogger(__name__)
@@ -84,7 +94,10 @@ class WorkerPool:
         self.logger.info(f"connecting to: {self._configuration.socket.host}:{self._configuration.socket.port}")
         for i in range(4):  # Hardcode to 4 workers for now
             self.logger.info("starting worker %s", i)
-            worker = Worker(self._configuration, self._worker_stop_event, **self._routes)
+            if os.getenv("THREADED_EXECUTION"):
+                worker = WorkerThread(self._configuration, self._worker_stop_event, **self._routes)
+            else:
+                worker = WorkerProcess(self._configuration, self._worker_stop_event, **self._routes)
             worker.start()
             self._workers.append(worker)
 
