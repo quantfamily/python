@@ -12,6 +12,7 @@ from pynng import Req0
 def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
     return None
 
+
 @pytest.mark.skipif(os.getenv("THREADED_EXECUTION"))
 def test_worker_process(client_config, server_socket_config):
     event = Event()
@@ -45,6 +46,7 @@ def test_worker_process(client_config, server_socket_config):
 
     event.set()
     worker.join()
+
 
 def test_worker_thread(client_config, server_socket_config):
     event = Event()
