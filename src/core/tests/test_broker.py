@@ -10,4 +10,3 @@ def test_broker():
     assert broker._broker_host == broker_host
     assert broker._local_host == local_host
     assert type(broker.http) == HTTPClient
-    assert type(broker.socket) == SocketClient
