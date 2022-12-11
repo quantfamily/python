@@ -1,3 +1,4 @@
+import pytest
 from argparse import ArgumentParser
 from datetime import datetime
 
@@ -9,6 +10,7 @@ from foreverbull.models import OHLC
 from foreverbull.parser import Parser
 
 
+@pytest.mark.skip(reason="test")
 def test_simple_simulation(algo_file, client_config, server_socket_config):
     args = [algo_file]
     parser = ArgumentParser()
