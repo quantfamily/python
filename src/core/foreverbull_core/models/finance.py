@@ -2,9 +2,8 @@ from datetime import datetime
 from enum import IntEnum
 from typing import List, Optional
 
-from pydantic import validator
-
 from foreverbull_core.models.base import Base
+from pydantic import validator
 
 
 class Asset(Base):

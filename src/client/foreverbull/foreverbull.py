@@ -1,12 +1,11 @@
 import logging
 import threading
 
+from foreverbull.models import Configuration
+from foreverbull.worker import WorkerPool
 from foreverbull_core.socket.client import SocketClient, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
-
-from foreverbull.models import Configuration
-from foreverbull.worker import WorkerPool
 
 
 class Foreverbull(threading.Thread):

@@ -1,10 +1,9 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy.orm import sessionmaker
-
 from foreverbull.data.data import Database, DateManager
 from foreverbull.data.stock_data import OHLC, Instrument, Portfolio, Position
+from sqlalchemy.orm import sessionmaker
 
 date = datetime(2016, 1, 4, 21)
 

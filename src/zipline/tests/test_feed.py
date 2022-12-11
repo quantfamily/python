@@ -2,7 +2,6 @@ import threading
 import time
 
 import pytest
-
 from foreverbull_zipline.exceptions import EndOfDayError
 from foreverbull_zipline.feed import Feed
 

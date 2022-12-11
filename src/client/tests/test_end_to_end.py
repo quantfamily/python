@@ -1,13 +1,12 @@
-import pytest
 from argparse import ArgumentParser
 from datetime import datetime
 
-from foreverbull_core.models.socket import Request, Response
-from pynng import Req0
-
+import pytest
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import OHLC
 from foreverbull.parser import Parser
+from foreverbull_core.models.socket import Request, Response
+from pynng import Req0
 
 
 @pytest.mark.skip(reason="test")

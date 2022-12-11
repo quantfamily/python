@@ -1,6 +1,5 @@
 import pytest
 from foreverbull_core.models.finance import OrderStatus
-
 from foreverbull_zipline.exceptions import BrokerError
 
 

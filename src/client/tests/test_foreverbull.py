@@ -1,11 +1,10 @@
 from datetime import datetime
 
 import pytest
-from foreverbull_core.models.socket import Request, Response, SocketConfig
-from pynng import Req0
-
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
+from foreverbull_core.models.socket import Request, Response, SocketConfig
+from pynng import Req0
 
 
 @pytest.fixture

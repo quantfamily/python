@@ -1,17 +1,15 @@
 import logging
+import os
 from multiprocessing import Event, Process
 from threading import Thread
-import os
-
-
-from foreverbull_core.models.socket import Response
-from foreverbull_core.models.worker import Parameter
-from foreverbull_core.socket.client import SocketClient
-from foreverbull_core.socket.exceptions import SocketTimeout
 
 from foreverbull.data import Database, DateManager
 from foreverbull.models import OHLC, Configuration
 from foreverbull.worker.exceptions import WorkerException
+from foreverbull_core.models.socket import Response
+from foreverbull_core.models.worker import Parameter
+from foreverbull_core.socket.client import SocketClient
+from foreverbull_core.socket.exceptions import SocketTimeout
 
 
 class Worker:

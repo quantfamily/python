@@ -1,7 +1,6 @@
 from unittest.mock import create_autospec
 
 import pytest
-
 from foreverbull_core.models.base import Base
 from foreverbull_core.models.socket import Request, Response
 from foreverbull_core.socket.router import MessageRouter, TaskAlreadyExists

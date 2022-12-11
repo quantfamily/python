@@ -5,10 +5,9 @@ import socket
 import time
 
 import foreverbull_core.logger
-from foreverbull_core import cli
-
 from foreverbull import Foreverbull
 from foreverbull.parser import Parser
+from foreverbull_core import cli
 
 _service_input = cli.ServiceInput()
 _backtets_input = cli.BacktestInput()

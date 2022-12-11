@@ -1,8 +1,7 @@
 import yfinance
+from foreverbull_zipline.models import Database, IngestConfig
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from foreverbull_zipline.models import Database, IngestConfig
 from tests import OHLC, Base, Instrument
 
 

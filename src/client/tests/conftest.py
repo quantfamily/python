@@ -2,9 +2,8 @@ import os
 from datetime import date
 
 import pytest
-from foreverbull_core.models.socket import SocketConfig
-
 from foreverbull.models import Configuration
+from foreverbull_core.models.socket import SocketConfig
 
 
 @pytest.fixture

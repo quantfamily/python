@@ -2,7 +2,6 @@ import socket
 
 import pynng
 import pytest
-
 from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_core.socket.client import SocketClient
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout

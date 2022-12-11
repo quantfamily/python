@@ -1,6 +1,5 @@
-from pynng import exceptions, nng
-
 from foreverbull_core.models.socket import SocketConfig
+from pynng import exceptions, nng
 
 from .exceptions import SocketClosed, SocketTimeout
 

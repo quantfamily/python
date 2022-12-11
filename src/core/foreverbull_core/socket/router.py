@@ -3,7 +3,6 @@ from collections import namedtuple
 from typing import Callable
 
 import pydantic
-
 from foreverbull_core.models.socket import Request, Response
 
 ROUTE = namedtuple("route", "func, route, model")

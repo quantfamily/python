@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 import pydantic
 import pynng
-
 from foreverbull_core.models.base import Base
 
 

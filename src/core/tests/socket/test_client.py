@@ -1,7 +1,6 @@
 from threading import Thread
 
 import pynng
-
 from foreverbull_core.models.socket import Request, Response, SocketConfig, SocketType
 from foreverbull_core.socket.client import ContextClient, SocketClient
 

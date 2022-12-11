@@ -6,7 +6,6 @@ from datetime import datetime
 from foreverbull_core.broker import Broker
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
-
 from foreverbull_zipline.backtest import Backtest
 from foreverbull_zipline.broker import Broker as StockBroker
 from foreverbull_zipline.exceptions import BacktestNotRunning

@@ -6,9 +6,9 @@ from foreverbull_core.models.finance import Portfolio
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed
 from foreverbull_core.socket.nanomsg import NanomsgSocket
-
 from foreverbull_zipline.exceptions import EndOfDayError
 from foreverbull_zipline.models import OHLC
+
 from zipline.api import get_datetime
 
 

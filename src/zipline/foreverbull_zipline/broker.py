@@ -6,10 +6,10 @@ from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.nanomsg import NanomsgSocket
 from foreverbull_core.socket.router import MessageRouter
-
-import zipline
 from foreverbull_zipline.backtest import Backtest
 from foreverbull_zipline.feed import Feed
+
+import zipline
 
 from .exceptions import BrokerError
 

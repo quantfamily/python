@@ -3,7 +3,6 @@ import pytest
 from foreverbull_core.broker import Broker
 from foreverbull_core.models.finance import Asset, Order
 from foreverbull_core.models.socket import Request, Response
-
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.models import EngineConfig, IngestConfig
 from tests.conftest import foreverbull_bundle, yahoo_bundle
