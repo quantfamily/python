@@ -1,6 +1,5 @@
 from foreverbull_core.broker import Broker
 from foreverbull_core.http.http import HTTPClient
-from foreverbull_core.socket.client import SocketClient
 
 
 def test_broker():
