@@ -1,6 +1,5 @@
 import pynng
 import pytest
-from foreverbull_core.broker import Broker
 from foreverbull_core.models.finance import Asset, Order
 from foreverbull_core.models.socket import Request, Response
 from foreverbull_zipline.app import Application
@@ -10,18 +9,8 @@ from tests.factories import populate_sql
 
 
 @pytest.fixture(scope="function")
-def application():
-    b = Broker("127.0.0.1:8080", "127.0.0.1")
-    a = Application(b)
-    a.start()
-    yield a
-    a.stop()
-    a.join()
-
-
-@pytest.fixture(scope="function")
-def application_socket(application):
-    socket = pynng.Req0(dial=f"{application.broker.socket.url()}")
+def application_socket(application: Application):
+    socket = pynng.Req0(dial=f"tcp://{application.socket_config.host}:{application.socket_config.port}")
     socket.recv_timeout = 5000
     socket.send_timeout = 5000
     return socket
