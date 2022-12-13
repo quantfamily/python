@@ -3,11 +3,12 @@ import os
 import threading
 from datetime import datetime
 
-from foreverbull_core.broker import Broker
+from foreverbull_core.models.socket import SocketConfig
+from foreverbull_core.socket.client import SocketClient
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.router import MessageRouter
 from foreverbull_zipline.backtest import Backtest
-from foreverbull_zipline.broker import Broker as StockBroker
+from foreverbull_zipline.broker import Broker
 from foreverbull_zipline.exceptions import BacktestNotRunning
 from foreverbull_zipline.feed import Feed
 from foreverbull_zipline.models import EngineConfig, IngestConfig, Period, Result
@@ -18,10 +19,10 @@ class ApplicationError(Exception):
 
 
 class Application(threading.Thread):
-    def __init__(self, broker: Broker):
+    def __init__(self, socket_config: SocketConfig):
         self.logger = logging.getLogger(__name__)
         self.id = os.environ.get("SERVICE_ID", None)
-        self.broker: Broker = broker
+        self.socket_config: SocketConfig = socket_config
         self.running = False
         self.online = False
         self._router = MessageRouter()
@@ -31,12 +32,12 @@ class Application(threading.Thread):
         self._router.add_route(self._run, "run")
         self._router.add_route(self._continue, "continue")
         self._router.add_route(self._status, "status")
-        self._router.add_route(self._stop, "stop")
+        self._router.add_route(self.stop, "stop")
         self._router.add_route(self._result, "result")
         self._stop_lock = threading.Lock()
         self.backtest: Backtest = Backtest()
         self.feed: Feed = Feed(self.backtest)
-        self.stock_broker: StockBroker = StockBroker(self.backtest, self.feed)
+        self.stock_broker: Broker = Broker(self.backtest, self.feed)
         threading.Thread.__init__(self)
 
     def _ingest(self, config: IngestConfig):
@@ -59,7 +60,7 @@ class Application(threading.Thread):
 
     def info(self) -> dict:
         return {
-            "socket": self.broker.socket.config.dict(),
+            "socket": self.socket_config.dict(),
             "feed": {"socket": self.feed.configuration.dict()},
             "broker": {"socket": self.stock_broker.configuration.dict()},
             "running": self.running,
@@ -72,7 +73,30 @@ class Application(threading.Thread):
             "day_completed": self.feed.day_completed,
         }
 
-    def _stop(self) -> None:
+    def run(self) -> None:
+        self.logger.info("starting application")
+        socket = SocketClient(self.socket_config)
+        self.running = True
+        while self.running:
+            try:
+                context_socket = socket.new_context()
+                message = context_socket.recv()
+                self.logger.info(f"received task: {message.task}")
+                rsp = self._router(message)
+                self.logger.info(f"sending response for task: {message.task}")
+                context_socket.send(rsp)
+                context_socket.close()
+            except SocketTimeout:
+                self.logger.debug("timeout")
+                context_socket.close()
+            except SocketClosed:
+                return
+            except Exception as e:
+                self.logger.warning(f"Unknown Exception when running: {repr(e)}")
+        socket.close()
+
+    def stop(self):
+        self.running = False
         self._stop_lock.acquire()
         if self.backtest and self.backtest.is_alive():
             self.backtest.stop()
@@ -85,29 +109,6 @@ class Application(threading.Thread):
         if self.running:
             self.feed.stop()
         self._stop_lock.release()
-        self.running = False
-
-    def run(self) -> None:
-        self.running = True
-        while self.running:
-            self.logger.debug("waiting for socket.recv()..")
-            try:
-                message = self.broker.socket.recv()
-                self.logger.info(f"recieved task: {message.task}")
-                rsp = self._router(message)
-                self.logger.info(f"sending response for task: {message.task}")
-                self.broker.socket.send(rsp)
-            except SocketTimeout:
-                self.logger.debug("timeout")
-                pass
-            except SocketClosed:
-                return
-            except Exception as e:
-                self.logger.warning(f"Unknown Exception when running: {repr(e)}")
-
-    def stop(self):
-        self.broker.socket.close()
-        return self._stop()
 
     def _result(self) -> dict:
         result = Result(periods=[])

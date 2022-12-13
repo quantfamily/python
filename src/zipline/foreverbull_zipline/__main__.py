@@ -31,26 +31,6 @@ def get_broker(args: argparse.Namespace) -> Broker:
     return Broker(broker_url, local_host)
 
 
-def get_service_id(args: argparse.Namespace) -> str:
-    if args.service_id:
-        service_id = args.service_id
-    else:
-        service_id = os.environ.get("SERVICE_ID")
-        if service_id is None:
-            raise SystemExit("missing service-id")
-    return service_id
-
-
-def get_instance_id(args: argparse.Namespace) -> str:
-    if args.instance_id:
-        instance_id = args.instance_id
-    else:
-        instance_id = os.environ.get("INSTANCE_ID")
-        if instance_id is None:
-            raise SystemExit("missing instance-id")
-    return instance_id
-
-
 def run_application(application: Application):
     application.start()
     try:

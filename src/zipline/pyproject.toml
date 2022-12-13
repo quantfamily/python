@@ -5,12 +5,10 @@ description="Zipline API to be use for Foreverbull"
 authors = [{ name = "Henrik Nilsson", email = "henrik@lhjnilsson.com" }]
 requires-python = ">=3.7,<4"
 dependencies= [
-    "zipline-reloaded==2.2.0",
+    "zipline-reloaded>=2.2.0,<3.0.0",
     "foreverbull-core",
-    "iso3166<2.1.0",
-    "numpy<1.23.0",
     "psycopg2-binary>=2.9.3,<3.0.0",
-    "sqlalchemy==1.4.43"
+    "sqlalchemy>=1.4.43"
 ]
 
 [project.optional-dependencies]

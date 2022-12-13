@@ -34,7 +34,7 @@ class Feed:
         req = Request(task="portfolio", data=portfolio.dict())
         self.socket.send(req.dump())
 
-    def _send_stock_data(self, asset, data):
+    def _send_ohlc(self, asset, data):
         ohlc = OHLC(
             isin=asset.symbol,
             open=data.current(asset, "open"),
@@ -44,7 +44,7 @@ class Feed:
             volume=data.current(asset, "volume"),
             time=get_datetime().to_pydatetime(),
         )
-        req = Request(task="stock_data", data=ohlc.dict())
+        req = Request(task="ohlc", data=ohlc.dict())
         self.socket.send(req.dump())
 
     def handle_data(self, context, data) -> None:
@@ -57,7 +57,7 @@ class Feed:
         self._send_portfolio()
         for asset in context.assets:
             try:
-                self._send_stock_data(asset, data)
+                self._send_ohlc(asset, data)
             except SocketClosed as exc:
                 self.logger.error(exc, exc_info=True)
                 return

@@ -1,30 +1,26 @@
 import time
 
 import pytest
-from foreverbull_core.broker import Broker
+from foreverbull_core.models.socket import SocketConfig
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.backtest import Backtest
 
 
-@pytest.fixture(scope="function")
-def application():
-    b = Broker("127.0.0.1:8080", "127.0.0.1")
-    a = Application(b)
-    a.start()
-    yield a
-    a.stop()
-    a.join()
-
-
 def test_start_stop():
-    b = Broker("127.0.0.1:8080", "127.0.0.1")
-    a = Application(b)
-    a.start()
-    a.stop()
-    a.join()
+    socket_config = SocketConfig(host="127.0.0.1", port=6565)
+    application = Application(socket_config)
+    application.start()
+    for _ in range(10):
+        if application.running:
+            break
+        time.sleep(0.1)
+    else:
+        raise Exception("Application not running")
+    application.stop()
+    application.join()
 
 
-def test_route_backtest_status(application):
+def test_route_backtest_status(application: Application):
     status = application._status()
     assert status["running"]
 
@@ -39,7 +35,7 @@ def test_route_backtest_result_negative():
     pass
 
 
-def test_application_test_info_status(application):
+def test_application_test_info_status(application: Application):
     Backtest._config = None
     assert "socket" in application.info()
     assert "feed" in application.info() and "socket" in application.info()["feed"]
@@ -56,7 +52,7 @@ def test_configured(application, backtest_config, yahoo_bundle):
     assert application._status()["configured"] is True
 
 
-def test_run_once(application, backtest_config, mocker):
+def test_run_once(application: Application, backtest_config, mocker):
     mocker.patch.object(application.feed, "wait_for_new_day")
     application.backtest.configure(backtest_config)
     application._run()
@@ -65,7 +61,7 @@ def test_run_once(application, backtest_config, mocker):
     application.stop()
 
 
-def test_run_early_stop(application, backtest_config):
+def test_run_early_stop(application: Application, backtest_config):
     application.backtest.configure(backtest_config)
     application._run()
     time.sleep(0.5)
