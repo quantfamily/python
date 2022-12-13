@@ -58,31 +58,44 @@ def populate_sql(ic: IngestConfig, db: Database):
             session.add(instrument)
     session.commit()
 
+def on_ohlc(*args, **kwargs):
+    pass
+
 def test_simple_execution():
     # Setup
-    print("SETUP")
+    client_socket = SocketConfig(host="127.0.0.1", port=6565)
+    client = Foreverbull(client_socket)
+    client._worker_routes['ohlc'] = on_ohlc
+    client.start()
+    client_socket = Req0(dial=f"tcp://{client_socket.host}:{client_socket.port}")
+    client_socket.send_timeout = 10000
+    client_socket.recv_timeout = 10000
+
+    client_server_socket_config = SocketConfig(host="127.0.0.1", port=6566, listen=False)
+    client_server_socket = Req0(listen=f"tcp://{client_server_socket_config.host}:{client_server_socket_config.port}")
+    client_server_socket.send_timeout = 10000
+    client_server_socket.recv_timeout = 10000
+
+
     backtest_socket = SocketConfig(host="127.0.0.1", port=5656)
     backtest = Application(backtest_socket)
     backtest.start()
-    print("STARTED BACKTEST")
     backtest_socket = Req0(dial=f"tcp://{backtest_socket.host}:{backtest_socket.port}")
-    backtest_socket.send_timeout = 5000
-    backtest_socket.recv_timeout = 5000
+    backtest_socket.send_timeout = 10000
+    backtest_socket.recv_timeout = 10000
     backtest_socket.send(Request(task="info").dump())
     response = Response.load(backtest_socket.recv())
     assert response.error is None
-    print("GOT INFO: ", response.data)
+
     backtest_info = response.data
     backtest_main_socket = Req0(dial=f"tcp://{backtest_info['socket']['host']}:{backtest_info['socket']['port']}")
-    backtest_main_socket.send_timeout = 5000
-    backtest_main_socket.recv_timeout = 5000
+    backtest_main_socket.send_timeout = 10000
+    backtest_main_socket.recv_timeout = 10000
     backtest_feed_socket = Sub0(dial=f"tcp://{backtest_info['feed']['socket']['host']}:{backtest_info['feed']['socket']['port']}")
-    backtest_feed_socket.recv_timeout = 5000
+    backtest_feed_socket.recv_timeout = 10000
     backtest_feed_socket.subscribe(b"")
-    #client = Foreverbull()
 
     # Ingest backtest data
-    print("POPULATING SQL")
     netloc = os.environ.get("POSTGRES_NETLOC", "127.0.0.1")
     database_config = Database(user="postgres", password="foreverbull", netloc=netloc, port=5433, dbname="postgres")
     ingest_config = IngestConfig(
@@ -95,12 +108,10 @@ def test_simple_execution():
     )
     populate_sql(ingest_config, database_config)
 
-    print("INGESTING BACKTEST DATA")
     backtest_main_socket.send(Request(task="ingest", data=ingest_config).dump())
     response = Response.load(backtest_main_socket.recv())
     assert response.error is None
 
-    
     # Configure Backtest
     engine_config = EngineConfig(
         name="foreverbull",
@@ -111,13 +122,23 @@ def test_simple_execution():
         benchmark="US0378331005",  # Apple
         isins=["US0378331005", "US88160R1014"],
     )
-    print("CONFIGURING BACKTEST")
     backtest_main_socket.send(Request(task="configure", data=engine_config).dump())
     response = Response.load(backtest_main_socket.recv())
     assert response.error is None
+   
     # Configure Worker
+    worker_config = Configuration(
+        execution_id="test",
+        execution_start_date=date.today(),
+        execution_end_date=date.today(),
+        database=None,
+        parameters=None,
+        socket=client_server_socket_config,
+    )
+    client_socket.send(Request(task="configure", data=worker_config).dump())
+    response = Response.load(client_socket.recv())
+    assert response.error is None
 
-    print("RUNNING BACKTEST")
     # Run Backtest
     backtest_main_socket.send(Request(task="run").dump())
     response = Response.load(backtest_main_socket.recv())
@@ -129,14 +150,24 @@ def test_simple_execution():
             backtest_main_socket.send(Request(task="continue").dump()) 
             response = Response.load(backtest_main_socket.recv())
             assert response.error is None
+        elif message.task == "ohlc":
+            client_server_socket.send(Request(task="ohlc", data=message.data).dump())
+            response = Response.load(client_server_socket.recv())
+            assert response.error is None
         elif message.task == "backtest_completed":
             break
     # Stop
 
+    client_socket.send(Request(task="stop").dump())
+    response = Response.load(client_socket.recv())
+    assert response.error is None
+    client.join()
+    client_socket.close()
+    client_server_socket.close()
+
     backtest_socket.send(Request(task="stop").dump())
     response = Response.load(backtest_socket.recv())
     assert response.error is None
-    print("WE ARE DONE")
     backtest_socket.close()
     backtest_main_socket.close()
     backtest_feed_socket.close()
