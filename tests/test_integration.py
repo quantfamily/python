@@ -1,11 +1,10 @@
 import os
 from datetime import date
 from typing import Iterator
-
+from pynng import Req0, Rep0, Sub0
 import pynng
 import pytest
 import yfinance
-from foreverbull.environment import EnvironmentParser
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
 from foreverbull_core.broker import Broker
@@ -15,6 +14,8 @@ from foreverbull_zipline.models import Database, EngineConfig, IngestConfig
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+from foreverbull_core.models.socket import SocketConfig
 
 Base = declarative_base()
 
@@ -57,132 +58,31 @@ def populate_sql(ic: IngestConfig, db: Database):
             session.add(instrument)
     session.commit()
 
+def test_simple_execution():
+    # Setup
+    print("SETUP")
+    backtest_socket = SocketConfig(host="127.0.0.1", port=5656)
+    backtest = Application(backtest_socket)
+    backtest.start()
+    print("STARTED BACKTEST")
+    backtest_socket = Req0(dial=f"tcp://{backtest_socket.host}:{backtest_socket.port}")
+    backtest_socket.send_timeout = 5000
+    backtest_socket.recv_timeout = 5000
+    backtest_socket.send(Request(task="info").dump())
+    response = Response.load(backtest_socket.recv())
+    assert response.error is None
+    print("GOT INFO: ", response.data)
+    backtest_info = response.data
+    backtest_main_socket = Req0(dial=f"tcp://{backtest_info['socket']['host']}:{backtest_info['socket']['port']}")
+    backtest_main_socket.send_timeout = 5000
+    backtest_main_socket.recv_timeout = 5000
+    backtest_feed_socket = Sub0(dial=f"tcp://{backtest_info['feed']['socket']['host']}:{backtest_info['feed']['socket']['port']}")
+    backtest_feed_socket.recv_timeout = 5000
+    backtest_feed_socket.subscribe(b"")
+    #client = Foreverbull()
 
-class Backtest:
-    def __init__(self, application_socket: pynng.Req0) -> None:
-        self.application_socket = application_socket
-        req = Request(task="info")
-        data = req.dump()
-        application_socket.send(data)
-        rsp_data = application_socket.recv()
-        rsp = Response.load(rsp_data)
-
-        req = rsp.data["socket"]
-        self.request_socket = pynng.Req0(dial=f"tcp://{req['host']}:{req['port']}")
-        self.request_socket.recv_timeout = 5000
-        self.request_socket.send_timeout = 5000
-
-        feed = rsp.data["feed"]["socket"]
-        self.feed_socket = pynng.Sub0(dial=f"tcp://{feed['host']}:{feed['port']}")
-        self.feed_socket.subscribe(b"")
-        self.feed_socket.recv_timeout = 5000
-
-    def ingest(self, config: IngestConfig) -> None:
-        req = Request(task="ingest", data=config)
-        self.request_socket.send(req.dump())
-        rsp_data = self.request_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.error is None
-
-    def configure(self, backtest_config: EngineConfig) -> None:
-        req = Request(task="configure", data=backtest_config)
-        self.request_socket.send(req.dump())
-        rsp_data = self.request_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.error is None
-
-    def run(self) -> Iterator[Request]:
-        req = Request(task="run")
-        self.request_socket.send(req.dump())
-        rsp_data = self.request_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.error is None
-        while True:
-            data = self.feed_socket.recv()
-            msg = Request.load(data)
-            if msg.task == "day_completed":
-                req = Request(task="continue")
-                self.request_socket.send(req.dump())
-                rsp_data = self.request_socket.recv()
-                rsp = Response.load(rsp_data)
-                assert rsp.error is None
-            if msg.task == "backtest_completed":
-                break
-            yield msg
-
-    def continue_(self) -> None:
-        req = Request(task="continue")
-        self.request_socket.send(req.dump())
-        rsp_data = self.request_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.error is None
-
-def on_message(data, dataframe, *args, **kwargs):
-    print("GOT MESSAGE", data, dataframe)
-    return
-
-
-class Client:
-    def __init__(self, foreverbull: Foreverbull, socket: pynng.Req0) -> None:
-        self.foreverbull = foreverbull
-        self.socket: pynng.Socket = socket
-
-    def configure(self, config: Configuration) -> None:
-        req = Request(task="configure", data=config)
-
-        context_socket = self.socket.new_context()
-        context_socket.send(req.dump())
-        rsp_data = context_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.task == "configure"
-        assert rsp.error is None
-
-    def process(self, ohlc: OHLC) -> None:
-        req = Request(task="stock_data", data=ohlc)
-        context_socket = self.socket.new_context()
-        context_socket.send(req.dump())
-        rsp_data = context_socket.recv()
-        rsp = Response.load(rsp_data)
-        assert rsp.task == "stock_data"
-        assert rsp.error is None
-
-
-@pytest.fixture
-def backtest():
-    foreverbull_broker = Broker("127.0.0.1:8080", "127.0.0.1")
-    application = Application(foreverbull_broker)
-    application.start()
-    socket = pynng.Req0(dial=f"{application.broker.socket.url()}")
-    socket.recv_timeout = 5000
-    socket.send_timeout = 5000
-    b = Backtest(socket)
-    yield b
-    application.stop()
-    application.join()
-
-
-@pytest.fixture
-def client():
-    input_parser = EnvironmentParser()
-    input_parser.algo_file = None
-    input_parser.broker = input_parser.get_broker()
-    input_parser.service_instance = input_parser.get_service_instance(input_parser.broker)
-    fb = Foreverbull(input_parser.broker.socket, 1)
-    fb._worker_routes["stock_data"] = on_message
-    fb.start()
-
-    host = input_parser.broker.socket_config.host
-    port = input_parser.broker.socket_config.port
-    socket = pynng.Req0(dial=f"tcp://{host}:{port}")
-    socket.recv_timeout = 5000
-    socket.send_timeout = 5000
-    yield Client(fb, socket)
-
-    fb.stop()
-    fb.join()
-
-
-def test_backtest_client_connection(backtest: Backtest, client: Client):
+    # Ingest backtest data
+    print("POPULATING SQL")
     netloc = os.environ.get("POSTGRES_NETLOC", "127.0.0.1")
     database_config = Database(user="postgres", password="foreverbull", netloc=netloc, port=5433, dbname="postgres")
     ingest_config = IngestConfig(
@@ -194,33 +94,50 @@ def test_backtest_client_connection(backtest: Backtest, client: Client):
         database=database_config,
     )
     populate_sql(ingest_config, database_config)
-    backtest.ingest(ingest_config)
 
-    backtest_config = EngineConfig(
+    print("INGESTING BACKTEST DATA")
+    backtest_main_socket.send(Request(task="ingest", data=ingest_config).dump())
+    response = Response.load(backtest_main_socket.recv())
+    assert response.error is None
+
+    
+    # Configure Backtest
+    engine_config = EngineConfig(
+        name="foreverbull",
         bundle="foreverbull",
         calendar="XFRA",
         start_date="2020-01-07",
         end_date="2020-02-01",
         benchmark="US0378331005",  # Apple
-        isins=["US0378331005", "US88160R1014"],  # Apple, Tesla
+        isins=["US0378331005", "US88160R1014"],
     )
-    backtest.configure(backtest_config)
+    print("CONFIGURING BACKTEST")
+    backtest_main_socket.send(Request(task="configure", data=engine_config).dump())
+    response = Response.load(backtest_main_socket.recv())
+    assert response.error is None
+    # Configure Worker
 
-    worker_config = Configuration(
-        execution_id="123",
-        execution_start_date=date(2020, 1, 7),
-        execution_end_date=date(2020, 2, 1),
-        parameters=[],
-        database=database_config,
-    )
-    client.configure(worker_config)
+    print("RUNNING BACKTEST")
+    # Run Backtest
+    backtest_main_socket.send(Request(task="run").dump())
+    response = Response.load(backtest_main_socket.recv())
+    assert response.error is None
 
-    for message in backtest.run():
-        print("message", message, flush=True)
-        if message.task == "stock_data":
-            client.process(message.data)
+    while True:
+        message = Request.load(backtest_feed_socket.recv())
         if message.task == "day_completed":
-            backtest.continue_()
-        if message.task == "backtest_completed":
-            print("------ BACKTEST COMPLETED -------")
+            backtest_main_socket.send(Request(task="continue").dump()) 
+            response = Response.load(backtest_main_socket.recv())
+            assert response.error is None
+        elif message.task == "backtest_completed":
             break
+    # Stop
+
+    backtest_socket.send(Request(task="stop").dump())
+    response = Response.load(backtest_socket.recv())
+    assert response.error is None
+    print("WE ARE DONE")
+    backtest_socket.close()
+    backtest_main_socket.close()
+    backtest_feed_socket.close()
+    backtest.join()
