@@ -56,3 +56,4 @@ jobs:
         python -m pytest tests/ -vvs
       env:
         POSTGRES_NETLOC: localhost
+        THREADED_EXECUTION: 1
