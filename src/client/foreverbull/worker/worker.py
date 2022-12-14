@@ -1,6 +1,6 @@
 import logging
 import os
-from multiprocessing import Event, Process
+from multiprocessing import Event, Process, set_start_method
 from threading import Thread
 
 from foreverbull.data import Database, DateManager
@@ -11,6 +11,7 @@ from foreverbull_core.models.worker import Parameter
 from foreverbull_core.socket.client import SocketClient
 from foreverbull_core.socket.exceptions import SocketTimeout
 
+set_start_method("spawn")
 
 class Worker:
     def __init__(self, configuration: Configuration, stop_event: Event, **routes):
