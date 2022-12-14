@@ -23,8 +23,8 @@ RUN pip install --upgrade cython
 RUN pip install flit
 
 ENV FLIT_ROOT_INSTALL 1
-RUN cd zipline && flit install && cd ..
-RUN cd core && flit install && cd ..
+RUN cd zipline && flit install --deps production && cd ..
+RUN cd core && flit install --deps production && cd ..
 
 WORKDIR /build/zipline
 CMD ["python", "-m", "foreverbull_zipline"]

@@ -45,11 +45,14 @@ if __name__ == "__main__":
     foreverbull_core.logger.Logger()
     args = parser.parse_args()
     broker = get_broker(args)
-    application = Application(broker)
-    application.broker.http.service.update_instance(
+    application = Application(broker.socket_config)
+    broker.http.service.update_instance(
         os.environ.get("SERVICE_NAME"), socket.gethostname(), broker.socket_config, True
     )
     signal.signal(signal.SIGTERM, application.stop)
     log.info("starting application")
     run_application(application)
     log.info("ending application")
+    broker.http.service.update_instance(
+        os.environ.get("SERVICE_NAME"), socket.gethostname(), broker.socket_config, False
+    )
