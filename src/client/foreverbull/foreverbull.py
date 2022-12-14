@@ -14,6 +14,7 @@ class Foreverbull(threading.Thread):
     def __init__(self, socket_config: SocketConfig = None):
         self.socket_config = socket_config
         self.running = False
+        self._worker_pool: WorkerPool = None
         self.logger = logging.getLogger(__name__)
         self._routes = MessageRouter()
         self._routes.add_route(self.stop, "stop")
@@ -59,5 +60,6 @@ class Foreverbull(threading.Thread):
 
     def stop(self):
         self.logger.info("Stopping instance")
-        self._worker_pool.stop()
+        if self._worker_pool:
+            self._worker_pool.stop()
         self.running = False

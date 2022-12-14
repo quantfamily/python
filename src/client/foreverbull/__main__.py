@@ -28,16 +28,17 @@ client_parser.add_arguments(run)
 
 
 def run_foreverbull(client_parser: Parser):
-    fb = Foreverbull(client_parser.broker.socket_config, client_parser.executors)
+    broker = client_parser.get_broker()
+    fb = Foreverbull(broker.socket_config)
     client_parser.import_algo_file()
     fb.start()
 
-    while not client_parser.broker.socket_config.port:
+    while not broker.socket_config.port:
         time.sleep(0.2)
 
     try:
-        client_parser.broker.http.service.update_instance(
-            os.environ.get("SERVICE_NAME"), socket.gethostname(), client_parser.broker.socket_config, True
+        broker.http.service.update_instance(
+            os.environ.get("SERVICE_NAME"), socket.gethostname(), broker.socket_config, True
         )
     except Exception as e:
         logging.error(f"unable to call backend: {repr(e)}")
@@ -52,8 +53,8 @@ def run_foreverbull(client_parser: Parser):
 
     fb.stop()
 
-    client_parser.broker.http.service.update_instance(
-        os.environ.get("SERVICE_NAME"), socket.gethostname(), client_parser.broker.socket_config, False
+    broker.http.service.update_instance(
+        os.environ.get("SERVICE_NAME"), socket.gethostname(), broker.socket_config, False
     )
 
 
@@ -63,7 +64,7 @@ def main():
     try:
         if args.option == "run":
             client_parser.parse(args)
-            run_foreverbull(parser)
+            run_foreverbull(client_parser)
         elif args.option == "service":
             _service_input.parse(args)
         elif args.option == "backtest":
