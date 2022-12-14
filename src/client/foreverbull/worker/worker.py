@@ -13,6 +13,7 @@ from foreverbull_core.socket.exceptions import SocketTimeout
 
 set_start_method("spawn")
 
+
 class Worker:
     def __init__(self, configuration: Configuration, stop_event: Event, **routes):
         self.logger = logging.getLogger(__name__)
