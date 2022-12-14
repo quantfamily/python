@@ -13,7 +13,7 @@ def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
     return None
 
 
-@pytest.mark.skipif(os.getenv("THREADED_EXECUTION"))
+@pytest.mark.skipif(os.getenv("THREADED_EXECUTION") is not None, reason="Test only works with multiprocessing")
 def test_worker_process(client_config, server_socket_config):
     event = Event()
 
