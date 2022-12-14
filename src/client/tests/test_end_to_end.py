@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from datetime import datetime
 
-import pytest
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import OHLC
 from foreverbull.parser import Parser
