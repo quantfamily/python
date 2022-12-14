@@ -11,8 +11,6 @@ bull = foreverbull.Foreverbull()
 
 logger = logging.getLogger(__name__)
 
-print("I AM HERE")
-
 
 def should_hold(df: DataFrame, ema_low, ema_high) -> bool:
     high = EMA(df.price, timeperiod=ema_high)
