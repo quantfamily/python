@@ -4,6 +4,7 @@ from datetime import datetime
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import OHLC
 from foreverbull.parser import Parser
+from foreverbull.worker import WorkerPool
 from foreverbull_core.models.socket import Request, Response
 from pynng import Req0
 
@@ -17,23 +18,32 @@ def test_simple_simulation(algo_file, client_config, server_socket_config):
     input_parser.parse(args)
 
     server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
-    server_socket.recv_timeout = 100000
-    server_socket.send_timeout = 100000
+    server_socket.recv_timeout = 10000
+    server_socket.send_timeout = 10000
 
-    fb = Foreverbull(input_parser.get_broker().socket_config)
+    worker_pool = WorkerPool(**Foreverbull._worker_routes)
+    worker_pool.setup()
+
+    broker = input_parser.get_broker()
+    fb = Foreverbull(broker.socket_config, worker_pool)
     fb.start()
 
-    request_socket = Req0(
-        dial=f"tcp://{input_parser.get_broker().socket_config.host}:{input_parser.get_broker().socket_config.port}"
-    )
-    request_socket.recv_timeout = 100000
-    request_socket.send_timeout = 100000
+    request_socket = Req0(dial=f"tcp://{broker.socket_config.host}:{broker.socket_config.port}")
+    request_socket.recv_timeout = 10000
+    request_socket.send_timeout = 10000
 
     request_context = request_socket.new_context()
     request_context.send(Request(task="configure", data=client_config).dump())
     response = Response.load(request_context.recv())
     request_context.close()
     assert response.task == "configure"
+    assert response.error is None
+
+    request_context = request_socket.new_context()
+    request_context.send(Request(task="run_backtest", data=None).dump())
+    response = Response.load(request_context.recv())
+    request_context.close()
+    assert response.task == "run_backtest"
     assert response.error is None
 
     ohlc = OHLC(
