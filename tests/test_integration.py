@@ -17,6 +17,8 @@ from sqlalchemy.orm import sessionmaker
 
 from foreverbull_core.models.socket import SocketConfig
 
+from foreverbull.worker import WorkerPool
+
 Base = declarative_base()
 
 
@@ -63,8 +65,11 @@ def on_ohlc(*args, **kwargs):
 
 def test_simple_execution():
     # Setup
+    worker_pool = WorkerPool()
+    worker_pool.setup()
+
     client_socket = SocketConfig(host="127.0.0.1", port=6565)
-    client = Foreverbull(client_socket)
+    client = Foreverbull(client_socket, worker_pool)
     client._worker_routes['ohlc'] = on_ohlc
     client.start()
     client_socket = Req0(dial=f"tcp://{client_socket.host}:{client_socket.port}")
@@ -142,6 +147,10 @@ def test_simple_execution():
     # Run Backtest
     backtest_main_socket.send(Request(task="run").dump())
     response = Response.load(backtest_main_socket.recv())
+    assert response.error is None
+
+    client_socket.send(Request(task="run_backtest").dump())
+    response = Response.load(client_socket.recv())
     assert response.error is None
 
     while True:
