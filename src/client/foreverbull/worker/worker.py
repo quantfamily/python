@@ -184,6 +184,8 @@ class WorkerPool:
         self.logger.info("backtest running")
 
     def stop(self):
+        if self._stop_workers_event.is_set():
+            return
         self.logger.info("stopping workers")
         self._stop_workers_event.set()
         self.survey.send(Request(task="stop").dump())
@@ -197,3 +199,5 @@ class WorkerPool:
             except pynng.exceptions.Timeout:
                 raise WorkerException("Workers did not respond in time")
         self.logger.info("workers stopped")
+        self.survey.close()
+        self.worker_states.close()

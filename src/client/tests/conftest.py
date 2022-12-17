@@ -5,6 +5,15 @@ import pytest
 from foreverbull.models import Configuration
 from foreverbull_core.models.socket import SocketConfig
 
+from foreverbull.worker import WorkerPool
+
+@pytest.fixture
+def worker_pool():
+    wp = WorkerPool()
+    wp.setup()
+    yield wp
+    wp.stop()
+
 
 @pytest.fixture
 def server_socket_config():
