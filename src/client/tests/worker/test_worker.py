@@ -1,5 +1,5 @@
 from datetime import datetime
-from multiprocessing import Event
+from multiprocessing import Event, get_start_method, set_start_method
 
 import pynng
 import pytest
@@ -13,8 +13,15 @@ def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
     return None
 
 
+@pytest.fixture(scope="session")
+def spawn_process():
+    method = get_start_method()
+    if method != "spawn":
+        set_start_method("spawn")
+
+
 @pytest.mark.parametrize("workerclass", [WorkerThread, WorkerProcess])
-def test_worker(workerclass: Worker, client_config, server_socket_config):
+def test_worker(workerclass: Worker, client_config, server_socket_config, spawn_process):
     survey_address = "ipc:///tmp/worker_pool.ipc"
     survey_socket = pynng.Surveyor0(listen=survey_address)
     survey_socket.recv_timeout = 10000
@@ -76,7 +83,7 @@ def test_worker(workerclass: Worker, client_config, server_socket_config):
     state_socket.close()
 
 
-def test_new_pool(client_config, server_socket_config):
+def test_new_pool(client_config, server_socket_config, spawn_process):
     server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
     server_socket.recv_timeout = 1000
     server_socket.send_timeout = 1000
