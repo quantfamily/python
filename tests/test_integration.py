@@ -26,7 +26,7 @@ from multiprocessing import get_start_method, set_start_method
 def spawn_process():
     method = get_start_method()
     if method != "spawn":
-        set_start_method("spawn")
+        set_start_method("spawn", force=True)
 
 
 class Instrument(Base):
