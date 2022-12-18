@@ -12,7 +12,7 @@ from foreverbull_core.models.socket import SocketConfig
 def spawn_process():
     method = get_start_method()
     if method != "spawn":
-        set_start_method("spawn")
+        set_start_method("spawn", force=True)
 
 
 @pytest.fixture
