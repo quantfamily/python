@@ -1,5 +1,5 @@
 from datetime import datetime
-from multiprocessing import Event, get_start_method, set_start_method
+from multiprocessing import Event
 
 import pynng
 import pytest
@@ -11,13 +11,6 @@ from pynng import Req0
 
 def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
     return None
-
-
-@pytest.fixture(scope="session")
-def spawn_process():
-    method = get_start_method()
-    if method != "spawn":
-        set_start_method("spawn")
 
 
 @pytest.mark.parametrize("workerclass", [WorkerThread, WorkerProcess])

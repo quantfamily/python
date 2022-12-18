@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from datetime import datetime
 
-import pytest
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import OHLC
 from foreverbull.parser import Parser
@@ -10,8 +9,7 @@ from foreverbull_core.models.socket import Request, Response
 from pynng import Req0
 
 
-@pytest.mark.skip(reason="This test is not working yet")
-def test_simple_simulation(algo_file, client_config, server_socket_config):
+def test_simple_simulation(algo_file, client_config, server_socket_config, spawn_process):
     args = [algo_file]
     parser = ArgumentParser()
     input_parser = Parser()
