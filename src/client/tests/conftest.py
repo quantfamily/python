@@ -3,9 +3,9 @@ from datetime import date
 
 import pytest
 from foreverbull.models import Configuration
+from foreverbull.worker import WorkerPool
 from foreverbull_core.models.socket import SocketConfig
 
-from foreverbull.worker import WorkerPool
 
 @pytest.fixture
 def worker_pool():
