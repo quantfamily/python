@@ -17,16 +17,16 @@ def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
 def test_worker(workerclass: Worker, client_config, server_socket_config):
     survey_address = "ipc:///tmp/worker_pool.ipc"
     survey_socket = pynng.Surveyor0(listen=survey_address)
-    survey_socket.recv_timeout = 1000
-    survey_socket.send_timeout = 1000
+    survey_socket.recv_timeout = 10000
+    survey_socket.send_timeout = 10000
     state_address = "ipc:///tmp/worker_pool_state.ipc"
     state_socket = pynng.Sub0(listen=state_address)
-    state_socket.recv_timeout = 1000
-    state_socket.send_timeout = 1000
+    state_socket.recv_timeout = 10000
+    state_socket.send_timeout = 10000
     state_socket.subscribe(b"")
     server_socket = Req0(listen=f"tcp://{server_socket_config.host}:{server_socket_config.port}")
-    server_socket.recv_timeout = 1000
-    server_socket.send_timeout = 1000
+    server_socket.recv_timeout = 10000
+    server_socket.send_timeout = 10000
 
     stop_event = Event()
 
