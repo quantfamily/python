@@ -58,5 +58,4 @@ jobs:
         POSTGRES_NETLOC: localhost
         THREADED_EXECUTION: 1
     - name: Dump docker logs on failure
-      if: failure()
       uses: jwalton/gh-docker-logs@v2
