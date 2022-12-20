@@ -1,5 +1,6 @@
 from datetime import datetime
 from multiprocessing import Event
+import os
 
 import pynng
 import pytest
@@ -15,6 +16,8 @@ def plain_ohlc_function(ohlc: OHLC, *args, **kwargs):
 
 @pytest.mark.parametrize("workerclass", [WorkerThread, WorkerProcess])
 def test_worker(workerclass: Worker, client_config, server_socket_config, spawn_process):
+    if type(workerclass) is WorkerProcess and os.environ.get("THREADED_EXECUTION"):
+        pytest.skip("WorkerProcess not supported with THREADED_EXECUTION")
     survey_address = "ipc:///tmp/worker_pool.ipc"
     survey_socket = pynng.Surveyor0(listen=survey_address)
     survey_socket.recv_timeout = 10000
