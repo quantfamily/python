@@ -40,6 +40,9 @@ class Worker:
     def configure(self, configuration: Configuration):
         self.configuration = configuration
         self.logger.info("configuring worker")
+        self.socket = pynng.Rep0(dial=f"tcp://{self.configuration.socket.host}:{self.configuration.socket.port}")
+        self.socket.recv_timeout = 500
+        self.socket.send_timeout = 500
         if configuration.parameters:
             self._setup_parameters(*configuration.parameters)
         self.date = DateManager(configuration.execution_start_date, configuration.execution_end_date)
@@ -63,11 +66,8 @@ class Worker:
                     self.configure(configuration)
                     responder.send(Response(task=request.task, error=None).dump())
                 elif request.task == "run_backtest":
-                    socket = pynng.Rep0(dial=f"tcp://{self.configuration.socket.host}:{self.configuration.socket.port}")
-                    socket.recv_timeout = 500
-                    socket.send_timeout = 500
                     responder.send(Response(task=request.task, error=None).dump())
-                    self.run_backtest(socket)
+                    self.run_backtest()
                 elif request.task == "stop":
                     responder.send(Response(task=request.task, error=None).dump())
                     responder.close()
@@ -85,12 +85,12 @@ class Worker:
                 state.close()
                 raise WorkerException(repr(e))
 
-    def run_backtest(self, socket: pynng.Req0):
+    def run_backtest(self):
         self.database.connect()
         while True:
             try:
                 self.logger.info("Getting context socket")
-                context_socket = socket.new_context()
+                context_socket = self.socket.new_context()
                 self.logger.info("Getting request")
                 request = Request.load(context_socket.recv())
                 response = self._process_ohlc(OHLC(**request.data))
@@ -103,7 +103,7 @@ class Worker:
                 raise WorkerException(repr(e))
             if self._stop_event.is_set():
                 break
-        socket.close()
+        self.socket.close()
 
 
 class WorkerThread(Worker, Thread):

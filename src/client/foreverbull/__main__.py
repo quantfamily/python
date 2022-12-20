@@ -61,7 +61,7 @@ def run_foreverbull(client_parser: Parser, worker_pool: WorkerPool):
 
 
 if __name__ == "__main__":
-    set_start_method("fork")
+    set_start_method("spawn")
     foreverbull_core.logger.Logger()
     args = parser.parse_args()
     try:
