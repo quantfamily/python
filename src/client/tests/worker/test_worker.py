@@ -1,6 +1,6 @@
+import os
 from datetime import datetime
 from multiprocessing import Event
-import os
 
 import pynng
 import pytest
