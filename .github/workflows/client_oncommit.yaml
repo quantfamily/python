@@ -32,5 +32,4 @@ jobs:
       run: |
         cd src/client && python -m pytest 
       env:
-        PYTHONPATH: ${PYTHONPATH}:${PWD}/src/core
         THREADED_EXECUTION: 1
