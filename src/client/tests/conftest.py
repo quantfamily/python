@@ -1,9 +1,26 @@
 import os
 from datetime import date
+from multiprocessing import get_start_method, set_start_method
 
 import pytest
 from foreverbull.models import Configuration
+from foreverbull.worker import WorkerPool
 from foreverbull_core.models.socket import SocketConfig
+
+
+@pytest.fixture(scope="session")
+def spawn_process():
+    method = get_start_method()
+    if method != "spawn":
+        set_start_method("spawn", force=True)
+
+
+@pytest.fixture
+def worker_pool():
+    wp = WorkerPool()
+    wp.setup()
+    yield wp
+    wp.stop()
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-FROM lhjnilsson/foreverbull_client:latest
+FROM spawn-client:latest
 
 RUN apt-get update 
 RUN apt-get install cmake build-essential python-dev -y

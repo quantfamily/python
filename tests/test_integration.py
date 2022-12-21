@@ -1,23 +1,32 @@
 import os
 from datetime import date
 from typing import Iterator
-from pynng import Req0, Rep0, Sub0
+
 import pynng
 import pytest
 import yfinance
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
+from foreverbull.worker import WorkerPool
 from foreverbull_core.broker import Broker
-from foreverbull_core.models.socket import Request, Response
+from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.models import Database, EngineConfig, IngestConfig
+from pynng import Rep0, Req0, Sub0
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from foreverbull_core.models.socket import SocketConfig
-
 Base = declarative_base()
+
+from multiprocessing import get_start_method, set_start_method
+
+
+@pytest.fixture(scope="session")
+def spawn_process():
+    method = get_start_method()
+    if method != "spawn":
+        set_start_method("spawn", force=True)
 
 
 class Instrument(Base):
@@ -58,14 +67,19 @@ def populate_sql(ic: IngestConfig, db: Database):
             session.add(instrument)
     session.commit()
 
+
 def on_ohlc(*args, **kwargs):
     pass
 
-def test_simple_execution():
+
+def test_simple_execution(spawn_process):
     # Setup
+    worker_pool = WorkerPool()
+    worker_pool.setup()
+
     client_socket = SocketConfig(host="127.0.0.1", port=6565)
-    client = Foreverbull(client_socket)
-    client._worker_routes['ohlc'] = on_ohlc
+    client = Foreverbull(client_socket, worker_pool)
+    client._worker_routes["ohlc"] = on_ohlc
     client.start()
     client_socket = Req0(dial=f"tcp://{client_socket.host}:{client_socket.port}")
     client_socket.send_timeout = 10000
@@ -75,7 +89,6 @@ def test_simple_execution():
     client_server_socket = Req0(listen=f"tcp://{client_server_socket_config.host}:{client_server_socket_config.port}")
     client_server_socket.send_timeout = 10000
     client_server_socket.recv_timeout = 10000
-
 
     backtest_socket = SocketConfig(host="127.0.0.1", port=5656)
     backtest = Application(backtest_socket)
@@ -91,7 +104,9 @@ def test_simple_execution():
     backtest_main_socket = Req0(dial=f"tcp://{backtest_info['socket']['host']}:{backtest_info['socket']['port']}")
     backtest_main_socket.send_timeout = 10000
     backtest_main_socket.recv_timeout = 10000
-    backtest_feed_socket = Sub0(dial=f"tcp://{backtest_info['feed']['socket']['host']}:{backtest_info['feed']['socket']['port']}")
+    backtest_feed_socket = Sub0(
+        dial=f"tcp://{backtest_info['feed']['socket']['host']}:{backtest_info['feed']['socket']['port']}"
+    )
     backtest_feed_socket.recv_timeout = 10000
     backtest_feed_socket.subscribe(b"")
 
@@ -125,7 +140,7 @@ def test_simple_execution():
     backtest_main_socket.send(Request(task="configure", data=engine_config).dump())
     response = Response.load(backtest_main_socket.recv())
     assert response.error is None
-   
+
     # Configure Worker
     worker_config = Configuration(
         execution_id="test",
@@ -144,10 +159,14 @@ def test_simple_execution():
     response = Response.load(backtest_main_socket.recv())
     assert response.error is None
 
+    client_socket.send(Request(task="run_backtest").dump())
+    response = Response.load(client_socket.recv())
+    assert response.error is None
+
     while True:
         message = Request.load(backtest_feed_socket.recv())
         if message.task == "day_completed":
-            backtest_main_socket.send(Request(task="continue").dump()) 
+            backtest_main_socket.send(Request(task="continue").dump())
             response = Response.load(backtest_main_socket.recv())
             assert response.error is None
         elif message.task == "ohlc":

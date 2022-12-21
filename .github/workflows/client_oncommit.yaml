@@ -21,7 +21,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install --upgrade setuptools
-        python -m pip install -e src/client[dev]
+        python -m pip install flit
+        cd src/client && flit install && cd ../..
+        cd src/core && flit install && cd ../..
     - name: Lint & format check
       run: |
         flake8 src/client
@@ -30,5 +32,5 @@ jobs:
       run: |
         cd src/client && python -m pytest 
       env:
-        PYTHON_PATH: src/core
+        PYTHONPATH: ${PYTHONPATH}:${PWD}/src/core
         THREADED_EXECUTION: 1

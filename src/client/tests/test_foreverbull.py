@@ -29,8 +29,8 @@ def configuration():
     )
 
 
-def test_configure_and_stop(client_socket_config, configuration):
-    fb = Foreverbull(client_socket_config)
+def test_configure_and_stop(client_socket_config, configuration, worker_pool):
+    fb = Foreverbull(client_socket_config, worker_pool)
 
     fb.start()
     fb.configure(configuration)
@@ -38,8 +38,8 @@ def test_configure_and_stop(client_socket_config, configuration):
     fb.join()
 
 
-def test_configure_and_stop_over_socket(client_socket_config, configuration):
-    fb = Foreverbull(client_socket_config)
+def test_configure_and_stop_over_socket(client_socket_config, worker_pool, configuration):
+    fb = Foreverbull(client_socket_config, worker_pool)
     fb.start()
 
     socket = Req0(dial=f"tcp://{client_socket_config.host}:{client_socket_config.port}")

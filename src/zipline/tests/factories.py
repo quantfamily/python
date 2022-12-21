@@ -18,7 +18,7 @@ def populate_sql(ic: IngestConfig, db: Database):
         data = feed.history(start=ic.from_date, end=ic.to_date)
         instrument = Instrument(isin=isin)
         session.add(instrument)
-        for (idx, row) in data.iterrows():
+        for idx, row in data.iterrows():
             ohlc = OHLC(
                 isin=isin, open=row.Open, high=row.High, low=row.Low, close=row.Close, volume=row.Volume, time=str(idx)
             )

@@ -3,10 +3,12 @@ import logging
 import os
 import socket
 import time
+from multiprocessing import set_start_method
 
 import foreverbull_core.logger
 from foreverbull import Foreverbull
 from foreverbull.parser import Parser
+from foreverbull.worker import WorkerPool
 from foreverbull_core import cli
 
 _service_input = cli.ServiceInput()
@@ -27,9 +29,9 @@ run = subparser.add_parser("run", help="run algo")
 client_parser.add_arguments(run)
 
 
-def run_foreverbull(client_parser: Parser):
+def run_foreverbull(client_parser: Parser, worker_pool: WorkerPool):
     broker = client_parser.get_broker()
-    fb = Foreverbull(broker.socket_config)
+    fb = Foreverbull(broker.socket_config, worker_pool)
     client_parser.import_algo_file()
     fb.start()
 
@@ -58,13 +60,16 @@ def run_foreverbull(client_parser: Parser):
     )
 
 
-def main():
+if __name__ == "__main__":
+    set_start_method("spawn")
     foreverbull_core.logger.Logger()
     args = parser.parse_args()
     try:
         if args.option == "run":
             client_parser.parse(args)
-            run_foreverbull(client_parser)
+            worker_pool = WorkerPool()
+            worker_pool.setup()
+            run_foreverbull(client_parser, worker_pool)
         elif args.option == "service":
             _service_input.parse(args)
         elif args.option == "backtest":
@@ -76,7 +81,3 @@ def main():
     except Exception as e:
         print(e)
         parser.print_help()
-
-
-if __name__ == "__main__":
-    main()

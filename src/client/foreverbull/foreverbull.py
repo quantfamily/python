@@ -11,14 +11,15 @@ from foreverbull_core.socket.router import MessageRouter
 class Foreverbull(threading.Thread):
     _worker_routes = {}
 
-    def __init__(self, socket_config: SocketConfig = None):
+    def __init__(self, socket_config: SocketConfig = None, worker_pool: WorkerPool = None):
         self.socket_config = socket_config
         self.running = False
-        self._worker_pool: WorkerPool = None
+        self._worker_pool: WorkerPool = worker_pool
         self.logger = logging.getLogger(__name__)
         self._routes = MessageRouter()
         self._routes.add_route(self.stop, "stop")
         self._routes.add_route(self.configure, "configure", Configuration)
+        self._routes.add_route(self.run_backtest, "run_backtest")
         threading.Thread.__init__(self)
 
     @staticmethod
@@ -54,9 +55,12 @@ class Foreverbull(threading.Thread):
 
     def configure(self, configuration: Configuration) -> None:
         self.logger.info("Configuring instance")
-        self._worker_pool = WorkerPool(configuration, **self._worker_routes)
-        self._worker_pool.start()
+        self._worker_pool.configure(configuration)
         return None
+
+    def run_backtest(self):
+        self.logger.info("Running backtest")
+        self._worker_pool.run_backtest()
 
     def stop(self):
         self.logger.info("Stopping instance")
