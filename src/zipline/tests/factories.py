@@ -1,3 +1,4 @@
+# flake8: noqa
 import yfinance
 from foreverbull_zipline.models import Database, IngestConfig
 from sqlalchemy import create_engine
