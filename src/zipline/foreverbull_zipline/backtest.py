@@ -7,7 +7,6 @@ import pandas as pd
 import pytz
 import six
 from foreverbull_zipline.data_bundles.foreverbull import DatabaseEngine, SQLIngester
-from foreverbull_zipline.data_bundles.yahoo import Yahoo
 from foreverbull_zipline.models import EngineConfig, IngestConfig
 
 from zipline import TradingAlgorithm
@@ -39,13 +38,8 @@ class Backtest(threading.Thread):
         super(Backtest, self).__init__()
 
     def ingest(self, config: IngestConfig) -> None:
-        if config.name == "yahoo":
-            ingester = Yahoo(**config.dict())
-        elif config.name == "foreverbull":
-            engine = DatabaseEngine(config.database)
-            ingester = SQLIngester(**config.dict(), engine=engine)
-        else:
-            raise ConfigError(f"Unknown bundle name: {config.name}")
+        engine = DatabaseEngine(config.database)
+        ingester = SQLIngester(**config.dict(), engine=engine)
         bundles.register(
             config.name,
             ingester,

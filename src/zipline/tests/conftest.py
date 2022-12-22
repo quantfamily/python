@@ -32,21 +32,20 @@ def application():
 
 
 @pytest.fixture()
-def backtest_config():
-    config = EngineConfig(
-        bundle="yahoo",
-        calendar="NYSE",
+def engine_config():
+    return EngineConfig(
+        bundle="foreverbull",
+        calendar="XFRA",
         start_date="2020-01-07",
         end_date="2020-02-01",
-        benchmark="AAPL",
-        isins=["AAPL", "TSLA"],
+        benchmark="US0378331005",
+        isins=["US0378331005", "US88160R1014"],
     )
-    return config
 
 
 @pytest.fixture()
 def asset():
-    asset = Asset(symbol="TSLA", exchange="QUANDL")
+    asset = Asset(symbol="US88160R1014", exchange="NYSE")
     return asset
 
 
@@ -65,8 +64,8 @@ def backtest():
 
 
 @pytest.fixture()
-def configured_backtest(backtest, yahoo_bundle, backtest_config):
-    backtest.configure(backtest_config)
+def configured_backtest(backtest, foreverbull_bundle, engine_config):
+    backtest.configure(engine_config)
     yield backtest
     backtest.stop()
     if backtest.is_alive():
@@ -123,8 +122,9 @@ def running_backtest(configured_backtest):
 
 
 @pytest.fixture
-def ingest_config():
+def ingest_config(database_config):
     return IngestConfig(
+        database=database_config,
         name="yahoo",
         calendar_name="NYSE",
         from_date="2020-01-01",
@@ -140,21 +140,11 @@ def database_config():
 
 
 @pytest.fixture()
-def yahoo_bundle(backtest, ingest_config):
-    try:
-        bundles.load(ingest_config.name)
-    except bundles.core.UnknownBundle:
-        ingest_config.isins = ["AAPL", "TSLA", "MSFT"]  # Replace due to yahoo working with symbols only
-
-        backtest.ingest(ingest_config)
-
-
-@pytest.fixture()
-def foreverbull_bundle(backtest, ingest_config, database_config):
+def foreverbull_bundle(ingest_config, database_config):
     populate_sql(ingest_config, database_config)
     ingest_config.name = "foreverbull"
     ingest_config.database = database_config
     try:
         bundles.load(ingest_config.name)
     except bundles.core.UnknownBundle:
-        backtest.ingest(ingest_config)
+        Backtest().ingest(ingest_config)
