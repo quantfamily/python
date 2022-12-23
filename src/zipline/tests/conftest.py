@@ -32,7 +32,7 @@ def application():
 
 
 @pytest.fixture()
-def engine_config():
+def engine_config(foreverbull_bundle):
     return EngineConfig(
         bundle="foreverbull",
         calendar="XFRA",
