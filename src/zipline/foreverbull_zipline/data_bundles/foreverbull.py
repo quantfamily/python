@@ -52,7 +52,7 @@ class SQLIngester:
         )
 
     def get_stock_data(self, isins: str) -> pd.DataFrame:
-        data = self._engine.get_data(isins, self.from_date, self.to_date)
+        data = self.engine.get_data(isins, self.from_date, self.to_date)
         data["time"] = pd.to_datetime(data["time"])
         data.rename(columns={"time": "Date"}, inplace=True, copy=False)
         data.set_index("Date", inplace=True)
@@ -91,4 +91,4 @@ class SQLIngester:
         adjustment_writer.write()
 
 
-register("foreverbull", SQLIngester(), calendar_name="XFRA")
+register("foreverbull", SQLIngester())

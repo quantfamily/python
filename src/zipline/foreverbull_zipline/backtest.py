@@ -38,6 +38,7 @@ class Backtest(threading.Thread):
         super(Backtest, self).__init__()
 
     def ingest(self, config: IngestConfig) -> None:
+        bundles.register("foreverbull", SQLIngester(), calendar_name=config.calendar_name)
         SQLIngester.engine = DatabaseEngine(config.database)
         SQLIngester.from_date = config.from_date
         SQLIngester.to_date = config.to_date

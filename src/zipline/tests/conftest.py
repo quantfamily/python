@@ -35,7 +35,7 @@ def application():
 def engine_config(foreverbull_bundle):
     return EngineConfig(
         bundle="foreverbull",
-        calendar="XFRA",
+        calendar="NYSE",
         start_date="2020-01-07",
         end_date="2020-02-01",
         benchmark="US0378331005",
@@ -125,9 +125,9 @@ def running_backtest(configured_backtest):
 def ingest_config(database_config):
     return IngestConfig(
         database=database_config,
-        name="yahoo",
+        name="foreverbull",
         calendar_name="NYSE",
-        from_date="2020-01-01",
+        from_date="2019-12-24",
         to_date="2020-12-31",
         isins=["US0378331005", "US88160R1014", "US5949181045"],
     )
@@ -142,9 +142,8 @@ def database_config():
 @pytest.fixture()
 def foreverbull_bundle(ingest_config, database_config):
     populate_sql(ingest_config, database_config)
-    ingest_config.name = "foreverbull"
-    ingest_config.database = database_config
+
     try:
         bundles.load(ingest_config.name)
-    except bundles.core.UnknownBundle:
+    except ValueError:
         Backtest().ingest(ingest_config)
