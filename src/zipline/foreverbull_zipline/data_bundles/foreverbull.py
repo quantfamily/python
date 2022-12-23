@@ -1,6 +1,4 @@
-import os
 import warnings
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -8,7 +6,7 @@ from foreverbull_zipline.models import Database
 from pandas import read_sql_query
 from sqlalchemy import create_engine
 
-from zipline.data.bundles import ingest, register
+from zipline.data.bundles import register
 from zipline.utils.cli import maybe_show_progress
 
 warnings.filterwarnings("ignore")
@@ -31,11 +29,13 @@ class DatabaseEngine:
 
 
 class SQLIngester:
-    def __init__(self, isins: List[str], from_date: str, to_date: str, engine: DatabaseEngine, **kwargs):
-        self.isins = isins
-        self.from_date = from_date
-        self.to_date = to_date
-        self._engine = engine
+    engine = None
+    isins = []
+    from_date = None
+    to_date = None
+
+    def __init__(self):
+        pass
 
     def create_metadata(self) -> pd.DataFrame:
         return pd.DataFrame(
@@ -91,11 +91,4 @@ class SQLIngester:
         adjustment_writer.write()
 
 
-if __name__ == "__main__":
-    symbols = [sym.strip() for sym in os.environ.get("SYMBOLS").split(",")]
-    register(
-        "foreverbull",
-        SQLIngester(symbols, os.environ.get("FROM_DATE"), os.environ.get("TO_DATE")),
-        calendar_name="XFRA",
-    )
-    ingest("foreverbull", os.environ, pd.Timestamp.utcnow(), [], True)
+register("foreverbull", SQLIngester(), calendar_name="XFRA")
