@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from foreverbull_core.models.finance import Asset, Order
+from foreverbull_core.models.finance import Instrument, Order
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
 from foreverbull_core.socket.nanomsg import NanomsgSocket
@@ -24,7 +24,7 @@ class Broker(threading.Thread):
         self.configuration = configuration
         self.socket = NanomsgSocket(configuration)
         self.router = MessageRouter()
-        self.router.add_route(self._can_trade, "can_trade", Asset)
+        self.router.add_route(self._can_trade, "can_trade", Instrument)
         self.router.add_route(self._order, "order", Order)
         self.router.add_route(self._get_order, "get_order", Order)
         self.router.add_route(self._get_open_orders, "get_open_orders")
@@ -46,26 +46,25 @@ class Broker(threading.Thread):
             except SocketClosed:
                 return
 
-    def _can_trade(self, asset: Asset) -> bool:
+    def _can_trade(self, instrument: Instrument) -> bool:
         try:
-            equity = self.backtest.trading_algorithm.symbol(asset.symbol)
+            equity = self.backtest.trading_algorithm.symbol(instrument.isin)
         except zipline.errors.SymbolNotFound as e:
             raise BrokerError(repr(e))
         if self.feed.bardata.can_trade(equity):
             return True
-        raise BrokerError(f"Asset {asset.symbol} is not tradeable")
+        raise BrokerError(f"Instrument {instrument.isin} is not tradeable")
 
     def _order(self, order: Order) -> dict:
         self.logger.info(f"order: {order}")
         try:
-            equity = self.backtest.trading_algorithm.symbol(order.asset.symbol)
+            asset = self.backtest.trading_algorithm.symbol(order.isin)
         except zipline.errors.SymbolNotFound as e:
             raise BrokerError(repr(e))
         order.id = self.backtest.trading_algorithm.order(
-            asset=equity, amount=order.amount, limit_price=order.limit_price, stop_price=order.stop_price
+            asset=asset, amount=order.amount, limit_price=order.limit_price, stop_price=order.stop_price
         )
-        event = self.backtest.trading_algorithm.get_order(order.id)
-        order.update(event)
+        order = Order.from_zipline(self.backtest.trading_algorithm.get_order(order.id))
         self.logger.info(f"Order done: {order}")
         return order
 
@@ -74,7 +73,7 @@ class Broker(threading.Thread):
         event = self.backtest.trading_algorithm.get_order(order.id)
         if event is None:
             raise BrokerError(f"order {order.id} not found")
-        order.update(event)
+        order = Order.from_zipline(event)
         self.logger.info(f"Get Order updated: {order}")
         return order
 
@@ -90,7 +89,7 @@ class Broker(threading.Thread):
         event = self.backtest.trading_algorithm.get_order(order.id)
         if event is None:
             raise BrokerError(f"order {order.id} not found")
-        order.update(event)
+        order = Order.from_zipline(event)
         return order
 
     def stop(self) -> None:

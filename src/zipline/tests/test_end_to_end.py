@@ -1,6 +1,6 @@
 import pynng
 import pytest
-from foreverbull_core.models.finance import Asset, Order
+from foreverbull_core.models.finance import Order, Portfolio
 from foreverbull_core.models.socket import Request, Response
 from foreverbull_zipline.app import Application
 
@@ -115,7 +115,7 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
         if msg.task == "backtest_completed":
             break
 
-    order = Order(asset=Asset(symbol=engine_config.isins[0], exchange="QUANDL"), amount=10)
+    order = Order(isin=engine_config.isins[0], amount=10)
     req = Request(task="order", data=order)
     broker.send(req.dump())
     rsp_data = broker.recv()
@@ -126,7 +126,8 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
         if msg.task == "portfolio":
-            pass
+            portfolio = Portfolio(**msg.data)
+            assert len(portfolio.positions) == 0
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None
@@ -137,7 +138,8 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
         if msg.task == "portfolio":
-            pass
+            portfolio = Portfolio(**msg.data)
+            assert len(portfolio.positions) == 1
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None
