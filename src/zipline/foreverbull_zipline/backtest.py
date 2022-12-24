@@ -7,7 +7,6 @@ import pandas as pd
 import pytz
 import six
 from foreverbull_zipline.data_bundles.foreverbull import DatabaseEngine, SQLIngester
-from foreverbull_zipline.data_bundles.yahoo import Yahoo
 from foreverbull_zipline.models import EngineConfig, IngestConfig
 
 from zipline import TradingAlgorithm
@@ -39,18 +38,11 @@ class Backtest(threading.Thread):
         super(Backtest, self).__init__()
 
     def ingest(self, config: IngestConfig) -> None:
-        if config.name == "yahoo":
-            ingester = Yahoo(**config.dict())
-        elif config.name == "foreverbull":
-            engine = DatabaseEngine(config.database)
-            ingester = SQLIngester(**config.dict(), engine=engine)
-        else:
-            raise ConfigError(f"Unknown bundle name: {config.name}")
-        bundles.register(
-            config.name,
-            ingester,
-            calendar_name=config.calendar_name,
-        )
+        bundles.register("foreverbull", SQLIngester(), calendar_name=config.calendar_name)
+        SQLIngester.engine = DatabaseEngine(config.database)
+        SQLIngester.from_date = config.from_date
+        SQLIngester.to_date = config.to_date
+        SQLIngester.isins = config.isins
         bundles.ingest(config.name, os.environ, pd.Timestamp.utcnow(), [], True)
 
     def set_callbacks(self, handle_data, backtest_completed) -> None:
@@ -68,12 +60,6 @@ class Backtest(threading.Thread):
             end_date = pd.Timestamp(config.end_date, tz=config.timezone)
         except pytz.exceptions.UnknownTimeZoneError as e:
             raise ConfigError(repr(e))
-
-        bundles.register(
-            config.bundle,
-            None,
-            calendar_name=config.calendar,
-        )
 
         bundle_data = bundles.load(
             config.bundle,
