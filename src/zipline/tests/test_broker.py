@@ -4,19 +4,19 @@ from foreverbull_zipline.exceptions import BrokerError
 
 
 @pytest.mark.skip(reason="still dont know how to test this, TODO")
-def test_can_trade(running_backtest, broker, asset):
+def test_can_trade(running_backtest, broker, instrument):
     new_day, finish = running_backtest()
     new_day()
-    broker._can_trade(asset)
+    broker._can_trade(instrument)
     finish()
 
 
-def test_can_trade_unknown_asset(running_backtest, broker, asset):
+def test_can_trade_unknown_instrument(running_backtest, broker, instrument):
     new_day, finish = running_backtest()
     new_day()
-    asset.symbol = "Ljungskile Pizzeria"
+    instrument.isin = "Ljungskile Pizzeria"
     with pytest.raises(BrokerError, match=".*Symbol 'LJUNGSKILE PIZZERIA' was not found"):
-        broker._can_trade(asset)
+        broker._can_trade(instrument)
     finish()
 
 
@@ -28,10 +28,10 @@ def test_order(running_backtest, broker, order):
     assert order.status == OrderStatus.OPEN
 
 
-def test_order_unknown_asset(running_backtest, broker, order):
+def test_order_unknown_instrument(running_backtest, broker, order):
     new_day, finish = running_backtest()
     new_day()
-    order.asset.symbol = "Ljungskile Pizzeria"
+    order.isin = "Ljungskile Pizzeria"
     with pytest.raises(BrokerError, match=".*Symbol 'LJUNGSKILE PIZZERIA' was not found"):
         broker._order(order)
     finish()

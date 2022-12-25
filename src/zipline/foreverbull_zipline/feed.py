@@ -30,7 +30,7 @@ class Feed:
         return {"socket": self.configuration.dict()}
 
     def _send_portfolio(self):
-        portfolio = Portfolio.from_backtest(self.engine.trading_algorithm.portfolio, get_datetime())
+        portfolio = Portfolio.from_zipline_backtest(self.engine.trading_algorithm.portfolio, get_datetime())
         req = Request(task="portfolio", data=portfolio.dict())
         self.socket.send(req.dump())
 

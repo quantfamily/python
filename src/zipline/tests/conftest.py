@@ -3,7 +3,7 @@ import time
 from threading import Event
 
 import pytest
-from foreverbull_core.models.finance import Asset, Order
+from foreverbull_core.models.finance import Instrument, Order
 from foreverbull_core.models.socket import SocketConfig
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.backtest import Backtest
@@ -44,15 +44,15 @@ def engine_config(foreverbull_bundle):
 
 
 @pytest.fixture()
-def asset():
-    asset = Asset(symbol="US88160R1014", exchange="NYSE")
-    return asset
+def instrument():
+    instrument = Instrument(isin="US88160R1014", name="APPLE", symbol="AAPL", exchange="NYSE")
+    return instrument
 
 
 @pytest.fixture()
-def order(asset):
+def order(instrument):
     order = Order(
-        asset=asset,
+        isin=instrument.isin,
         amount=10,
     )
     return order
