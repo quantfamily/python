@@ -9,7 +9,7 @@ class Instrument(Base):
     isin: str
     symbol: str
     exchange: str
-    name: Optional[str]
+    name: str
 
 
 class OrderStatus(IntEnum):

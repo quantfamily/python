@@ -1,58 +1,21 @@
 from datetime import datetime
 
-from foreverbull_core.models.finance import Asset, EndOfDay, Order, OrderStatus, Portfolio, Position, Price
+from foreverbull_core.models.finance import Instrument, Order, OrderStatus, Portfolio, Position
 
 
-def test_asset():
-    a = Asset(sid=123, symbol="AAPL", asset_name="Apple", exchange="QUANDL")
+def test_instrument():
+    i = Instrument(isin="AABBCC123", symbol="AAPL", name="Apple", exchange="QUANDL")
 
-    data = a.dump()
-    loaded = Asset.load(data)
-    assert a == loaded
-
-
-def test_price():
-    price = Price(
-        date=datetime.now(),
-        last_traded=datetime.now(),
-        price=133.7,
-        open=133.6,
-        close=1337.8,
-        high=1337.8,
-        low=1337.6,
-        volume=9001,
-    )
-
-    data = price.dump()
-    loaded = Price.load(data)
-    assert price == loaded
-
-
-def test_end_of_day():
-    a = Asset(sid=123, symbol="AAPL", asset_name="Apple", exchange="QUANDL")
-    eod = EndOfDay(
-        asset=a,
-        date=datetime.now(),
-        last_traded=datetime.now(),
-        price=133.7,
-        open=133.6,
-        close=1337.8,
-        high=1337.8,
-        low=1337.6,
-        volume=9001,
-    )
-
-    data = eod.dump()
-    loaded = EndOfDay.load(data)
-    assert eod == loaded
+    data = i.dump()
+    loaded = Instrument.load(data)
+    assert i == loaded
 
 
 def test_order():
-    a = Asset(sid=123, symbol="AAPL", asset_name="Apple", exchange="QUANDL")
     order_status = OrderStatus(value=1)
     order = Order(
         id="order_id",
-        asset=a,
+        isin="aabbcc123",
         amount=10,
         filled=10,
         commission=0,
@@ -68,8 +31,7 @@ def test_order():
 
 
 def test_position():
-    a = Asset(sid=123, symbol="AAPL", asset_name="Apple", exchange="QUANDL")
-    position = Position(asset=a, amount=10, cost_basis=0.1, last_sale_price=15, last_sale_date="2017-01-01")
+    position = Position(isin="aabbcc123", amount=10, cost_basis=0.1, last_sale_price=15, last_sale_date="2017-01-01")
 
     data = position.dump()
     loaded = Position.load(data)
