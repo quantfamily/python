@@ -53,7 +53,7 @@ def populate_sql(ic: IngestConfig, db: Database):
     session = Session()
     session.query(OHLC).delete()
     session.query(Instrument).delete()
-    isin_to_symbol = {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT"}
+    isin_to_symbol = {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT", "US02079K1079": "GOOG", "US0231351067": "AMZN", "US30303M1027": "META"}
     for isin in ic.isins:
         feed = yfinance.Ticker(isin_to_symbol[isin])
         data = feed.history(start=ic.from_date, end=ic.to_date)
@@ -116,9 +116,9 @@ def test_simple_execution(spawn_process):
     ingest_config = IngestConfig(
         name="foreverbull",
         calendar_name="NYSE",
-        from_date="2020-01-01",
-        to_date="2020-12-31",
-        isins=["US0378331005", "US88160R1014", "US5949181045"],
+        from_date="2019-01-01",
+        to_date="2021-12-31",
+        isins=["US0378331005", "US88160R1014", "US5949181045", "US02079K1079", "US0231351067", "US30303M1027"],
         database=database_config,
     )
     populate_sql(ingest_config, database_config)
@@ -132,10 +132,10 @@ def test_simple_execution(spawn_process):
         name="foreverbull",
         bundle="foreverbull",
         calendar="XFRA",
-        start_date="2020-01-07",
-        end_date="2020-02-01",
+        start_date="2019-01-07",
+        end_date="2021-12-31",
         benchmark="US0378331005",  # Apple
-        isins=["US0378331005", "US88160R1014"],
+        isins=["US0378331005", "US88160R1014", "US5949181045", "US02079K1079", "US0231351067", "US30303M1027"],
     )
     backtest_main_socket.send(Request(task="configure", data=engine_config).dump())
     response = Response.load(backtest_main_socket.recv())
