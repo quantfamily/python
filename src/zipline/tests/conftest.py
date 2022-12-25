@@ -45,14 +45,14 @@ def engine_config(foreverbull_bundle):
 
 @pytest.fixture()
 def instrument():
-    instrument = Instrument(symbol="US88160R1014", exchange="NYSE")
+    instrument = Instrument(isin="US88160R1014", name="APPLE", symbol="AAPL", exchange="NYSE")
     return instrument
 
 
 @pytest.fixture()
 def order(instrument):
     order = Order(
-        isin=instrument.symbol,
+        isin=instrument.isin,
         amount=10,
     )
     return order
