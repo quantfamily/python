@@ -51,6 +51,8 @@ jobs:
         cd src/zipline && flit install && cd ../..
         cd src/client && flit install && cd ../..
         cd src/core && flit install && cd ../..
+
+        python -m pip install ta-lib
     - name: Integration test
       run: |
         python -m pytest tests/ -vvs
