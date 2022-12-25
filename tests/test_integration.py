@@ -74,12 +74,11 @@ def on_ohlc(*args, **kwargs):
 
 def test_simple_execution(spawn_process):
     # Setup
-    worker_pool = WorkerPool()
+    worker_pool = WorkerPool(ohlc=on_ohlc)
     worker_pool.setup()
 
     client_socket = SocketConfig(host="127.0.0.1", port=6565)
     client = Foreverbull(client_socket, worker_pool)
-    client._worker_routes["ohlc"] = on_ohlc
     client.start()
     client_socket = Req0(dial=f"tcp://{client_socket.host}:{client_socket.port}")
     client_socket.send_timeout = 10000
@@ -133,7 +132,7 @@ def test_simple_execution(spawn_process):
         bundle="foreverbull",
         calendar="XFRA",
         start_date="2019-01-07",
-        end_date="2021-12-31",
+        end_date="2021-11-30",
         benchmark="US0378331005",  # Apple
         isins=["US0378331005", "US88160R1014", "US5949181045", "US02079K1079", "US0231351067", "US30303M1027"],
     )
@@ -175,8 +174,8 @@ def test_simple_execution(spawn_process):
             assert response.error is None
         elif message.task == "backtest_completed":
             break
+    
     # Stop
-
     client_socket.send(Request(task="stop").dump())
     response = Response.load(client_socket.recv())
     assert response.error is None
