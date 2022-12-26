@@ -1,7 +1,7 @@
 import os
 from datetime import date
 from typing import Iterator
-
+import json
 import pynng
 import pytest
 import yfinance
@@ -9,6 +9,7 @@ from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
 from foreverbull_core.broker import Broker
+from foreverbull_core.models.finance import Order
 from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.models import Database, EngineConfig, IngestConfig
@@ -16,6 +17,11 @@ from pynng import Rep0, Req0, Sub0
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+from talib import EMA
+from pandas import DataFrame
+import numpy
+from foreverbull.data import Database as WorkerDatabase
 
 Base = declarative_base()
 
@@ -68,8 +74,18 @@ def populate_sql(ic: IngestConfig, db: Database):
     session.commit()
 
 
-def on_ohlc(*args, **kwargs):
-    pass
+def on_ohlc(ohlc: OHLC, database: WorkerDatabase):
+    def should_hold(df: DataFrame, low, high):
+        high = EMA(df.close, timeperiod=high).iloc[-1]
+        low = EMA(df.close, timeperiod=low).iloc[-1]
+        if numpy.isnan(high) or low < high:
+            return False
+        return True
+    history = database.stock_data(ohlc.isin)
+    if should_hold(history, 16, 32):
+        return Order(isin=ohlc.isin, amount=1)
+    else:
+        return Order(isin=ohlc.isin, amount=-1)
 
 
 def test_simple_execution(spawn_process):
@@ -175,6 +191,13 @@ def test_simple_execution(spawn_process):
         elif message.task == "backtest_completed":
             break
     
+    # Get Results
+    backtest_main_socket.send(Request(task="result").dump())
+    response = Response.load(backtest_main_socket.recv())
+    assert response.error is None
+    with open("results.json", "w") as f:
+        json.dump(response.data, f, indent=4)
+
     # Stop
     client_socket.send(Request(task="stop").dump())
     response = Response.load(client_socket.recv())
