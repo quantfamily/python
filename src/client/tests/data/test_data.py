@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pandas
 from foreverbull.data.data import Database, DateManager
-from foreverbull.data.stock_data import Portfolio, Position
+from foreverbull.data.stock_data import Portfolio
 
 
 def test_connect_sqlite():

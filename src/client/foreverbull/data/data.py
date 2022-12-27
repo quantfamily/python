@@ -33,11 +33,11 @@ class Database:
     def stock_data(self, isin: str = None) -> DataFrame:
         if isin:
             query = f"""Select isin, time, high, low, open, close, volume
-                        FROM ohlc WHERE time BETWEEN '{self.date_manager.start}' 
+                        FROM ohlc WHERE time BETWEEN '{self.date_manager.start}'
                         AND '{self.date_manager.current}' AND isin='{isin}'"""
         else:
             query = f"""Select isin, time, high, low, open, close, volume
-                        FROM ohlc WHERE time BETWEEN '{self.date_manager.start}' 
+                        FROM ohlc WHERE time BETWEEN '{self.date_manager.start}'
                         AND '{self.date_manager.current}'"""
         return read_sql_query(query, self.engine)
 
@@ -51,7 +51,7 @@ class Database:
         portfolio = self.portfolio()
 
         with self.session_maker() as db_session:
-            query = db_session.query(Position).join(Portfolio).join(Instrument)
+            query = db_session.query(Position).join(Portfolio)
             query = query.filter(Portfolio.id == portfolio.id)
             query = query.filter(isin == Position.isin)
             position = query.first()
