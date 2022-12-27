@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from foreverbull_core.models.finance import Instrument, Order, OrderStatus, Portfolio, Position
 
 
@@ -45,8 +47,7 @@ def test_portfolio():
         returns=600,
         cash=0,
         positions=[],
-        start_date="2017-01-01",
-        current_date="2018-01-01",
+        timestamp=datetime(2021, 10, 1),
         positions_value=1543.0,
         positions_exposure=0,
     )

@@ -64,13 +64,12 @@ class Portfolio(Base):
     returns: float
     cash: float
     positions: List[Position]
-    start_date: str
-    current_date: str
+    timestamp: datetime
     positions_value: float
     positions_exposure: float
 
     @classmethod
-    def from_zipline_backtest(cls, backtest, current_date: datetime):
+    def from_zipline_backtest(cls, backtest, timestamp: datetime):
         positions = []
         for _, pos in backtest.positions.items():
             position = Position(
@@ -89,8 +88,7 @@ class Portfolio(Base):
             returns=backtest.returns,
             cash=backtest.cash,
             positions=positions,
-            start_date=backtest.start_date.isoformat(),
-            current_date=current_date.isoformat(),
+            timestamp=timestamp.isoformat(),
             positions_value=backtest.positions_value,
             positions_exposure=backtest.positions_exposure,
         )
