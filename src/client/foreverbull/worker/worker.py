@@ -86,7 +86,6 @@ class Worker:
                 raise WorkerException(repr(e))
 
     def run_backtest(self):
-        self.database.connect()
         while True:
             try:
                 self.logger.info("Getting context socket")

@@ -47,11 +47,9 @@ class Database:
         return portfolio
 
     def get_position(self, isin: str) -> Position:
-        portfolio = self.portfolio()
-
         with self.session_maker() as db_session:
             query = db_session.query(Position).join(Portfolio)
-            query = query.filter(Portfolio.id == portfolio.id)
+            query = query.filter(Portfolio.execution_id == self.execution_id)
             query = query.filter(isin == Position.isin)
             position = query.first()
 

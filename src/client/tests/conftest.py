@@ -1,5 +1,5 @@
 import os
-from datetime import date, datetime
+from datetime import datetime
 from multiprocessing import get_start_method, set_start_method
 
 import pytest
@@ -40,12 +40,12 @@ def client_socket_config():
 
 
 @pytest.fixture
-def client_config(client_socket_config):
+def client_config(client_socket_config, database_config):
     return Configuration(
         execution_id="test",
-        execution_start_date=date.today(),
-        execution_end_date=date.today(),
-        database=None,
+        execution_start_date=datetime(2020, 1, 1),
+        execution_end_date=datetime(2021, 12, 31),
+        database=database_config,
         parameters=None,
         socket=client_socket_config,
     )
@@ -80,6 +80,22 @@ def date_manager():
 @pytest.fixture(scope="session")
 def instruments():
     return {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT"}
+
+
+@pytest.fixture(scope="session")
+def database_config():
+    user = os.environ.get("POSTGRES_USER", "postgres")
+    password = os.environ.get("POSTGRES_PASSWORD", "foreverbull")
+    netloc = os.environ.get("POSTGRES_HOST", "localhost")
+    port = os.environ.get("POSTGRES_PORT", "5433")
+    dbname = os.environ.get("POSTGRES_DB", "postgres")
+    return DatabaseConfig(
+        netloc=netloc,
+        port=port,
+        user=user,
+        password=password,
+        dbname=dbname,
+    )
 
 
 @pytest.fixture(scope="session")
