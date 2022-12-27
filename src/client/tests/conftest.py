@@ -2,17 +2,16 @@ import os
 from datetime import date
 from multiprocessing import get_start_method, set_start_method
 
-import yfinance
-
 import pytest
+import yfinance
+from foreverbull.data.stock_data import OHLC, Base
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
 from foreverbull_core.models.socket import SocketConfig
-
+from foreverbull_core.models.worker import Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from foreverbull.data.stock_data import Base, OHLC
-from foreverbull_core.models.worker import Database
+
 
 @pytest.fixture(scope="session")
 def spawn_process():
@@ -67,12 +66,13 @@ def hello(*args, **kwargs):
     yield "test_file"
     os.remove("test_file.py")
 
+
 @pytest.fixture
 def postgres_database():
     user = os.environ.get("POSTGRES_USER", "postgres")
     password = os.environ.get("POSTGRES_PASSWORD", "foreverbull")
     netloc = os.environ.get("POSTGRES_HOST", "localhost")
-    port = os.environ.get("POSTGRES_PORT", "5433") 
+    port = os.environ.get("POSTGRES_PORT", "5433")
     dbname = os.environ.get("POSTGRES_DB", "postgres")
     return Database(user=user, password=password, netloc=netloc, port=port, dbname=dbname)
 

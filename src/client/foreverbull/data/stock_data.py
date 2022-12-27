@@ -4,6 +4,7 @@ from sqlalchemy.sql.schema import ForeignKey
 
 Base = declarative_base()
 
+
 class OHLC(Base):
     __tablename__ = "ohlc"
     id = Column("id", Integer, primary_key=True)

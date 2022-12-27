@@ -1,6 +1,6 @@
 from foreverbull.data.stock_data import Base, Portfolio, Position
 from foreverbull_core.models.worker import Database as DatabaseConfiguration
-from pandas import read_sql_query, DataFrame
+from pandas import DataFrame, read_sql_query
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm.session import sessionmaker
 
