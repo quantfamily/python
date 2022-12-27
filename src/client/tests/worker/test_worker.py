@@ -7,11 +7,10 @@ import pytest
 from foreverbull.data import Database
 from foreverbull.models import OHLC
 from foreverbull.worker.worker import Worker, WorkerPool, WorkerProcess, WorkerThread
+from foreverbull_core.models.finance import Order
 from foreverbull_core.models.socket import Request, Response
 from pandas import DataFrame
 from pynng import Req0
-
-from foreverbull_core.models.finance import Order
 
 
 def plain_ohlc_function(ohlc: OHLC, database: Database):
