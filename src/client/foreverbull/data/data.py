@@ -24,7 +24,6 @@ class Database:
         self.execution_id = execution_id
         self.date_manager = date_manager
 
-    def connect(self) -> None:
         self.engine = create_engine(self.uri)
         if self.db_conf is None:
             Base.metadata.create_all(self.engine)
@@ -44,7 +43,7 @@ class Database:
     def portfolio(self) -> Portfolio:
         with self.session_maker() as db_session:
             q = db_session.query(Portfolio).filter_by(execution_id=self.execution_id)
-            portfolio = q.order_by(desc(Portfolio.current_date)).first()
+            portfolio = q.order_by(desc(Portfolio.timestamp)).first()
         return portfolio
 
     def get_position(self, isin: str) -> Position:

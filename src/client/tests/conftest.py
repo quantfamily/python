@@ -4,12 +4,12 @@ from multiprocessing import get_start_method, set_start_method
 
 import pytest
 import yfinance
-from foreverbull.data.data import DateManager
-from foreverbull.data.stock_data import OHLC, Base
+from foreverbull.data.data import Database, DateManager
+from foreverbull.data.stock_data import OHLC, Base, Portfolio, Position
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
 from foreverbull_core.models.socket import SocketConfig
-from foreverbull_core.models.worker import Database
+from foreverbull_core.models.worker import Database as DatabaseConfig
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -69,23 +69,30 @@ def hello(*args, **kwargs):
 
 
 @pytest.fixture(scope="session")
-def postgres_database():
+def date_manager():
+    start = datetime(2020, 1, 1)
+    end = datetime(2021, 12, 31)
+    date = DateManager(start, end)
+    date.current = end
+    return date
+
+
+@pytest.fixture(scope="session")
+def instruments():
+    return {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT"}
+
+
+@pytest.fixture(scope="session")
+def loaded_database(date_manager, instruments):
+    start = "2020-01-01"
+    end = "2021-12-31"
+
     user = os.environ.get("POSTGRES_USER", "postgres")
     password = os.environ.get("POSTGRES_PASSWORD", "foreverbull")
     netloc = os.environ.get("POSTGRES_HOST", "localhost")
     port = os.environ.get("POSTGRES_PORT", "5433")
     dbname = os.environ.get("POSTGRES_DB", "postgres")
-    return Database(user=user, password=password, netloc=netloc, port=port, dbname=dbname)
-
-
-@pytest.fixture(scope="session")
-def loaded_database(postgres_database: Database):
-    instruments = {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT"}
-    start = "2020-01-01"
-    end = "2021-12-31"
-
-    db = postgres_database
-    engine = create_engine(f"postgresql://{db.user}:{db.password}@{db.netloc}:{db.port}/{db.dbname}")
+    engine = create_engine(f"postgresql://{user}:{password}@{netloc}:{port}/{dbname}")
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
@@ -107,13 +114,37 @@ def loaded_database(postgres_database: Database):
             )
             session.add(ohlc)
     session.commit()
-    return instruments
-
-
-@pytest.fixture
-def date_manager():
-    start = datetime(2020, 1, 1)
-    end = datetime(2021, 12, 31)
-    date = DateManager(start, end)
-    date.current = end
-    return date
+    portfolio = Portfolio(
+        execution_id="test_execution",
+        cash_flow=123.2,
+        starting_cash=1000,
+        portfolio_value=2134.2,
+        pnl=32.2,
+        returns=22.2,
+        timestamp=datetime(2021, 12, 31),
+        positions_value=222.4,
+        positions_exposure=100.0,
+    )
+    session.add(portfolio)
+    session.commit()
+    session.refresh(portfolio)
+    position = Position(
+        portfolio_id=portfolio.id,
+        isin="US0378331005",
+        amount=100,
+        cost_basis=100,
+        last_sale_date=datetime(2021, 12, 31),
+    )
+    session.add(position)
+    session.commit()
+    return Database(
+        execution_id="test_execution",
+        date_manager=date_manager,
+        db_conf=DatabaseConfig(
+            user=user,
+            password=password,
+            netloc=netloc,
+            port=port,
+            dbname=dbname,
+        ),
+    )
