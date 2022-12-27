@@ -2,20 +2,15 @@ from datetime import datetime
 
 import pytest
 from foreverbull.data.data import Database, DateManager
-from foreverbull.data.stock_data import OHLC, Instrument, Portfolio, Position
+from foreverbull.data.stock_data import OHLC, Portfolio, Position
 from sqlalchemy.orm import sessionmaker
 
 date = datetime(2016, 1, 4, 21)
 
 
 @pytest.fixture()
-def sample_instrument():
-    return Instrument(isin="abc123", name="BERLINER KEBAP")
-
-
-@pytest.fixture()
-def sample_stock_data(sample_instrument):
-    return OHLC(isin=sample_instrument.isin)
+def sample_stock_data():
+    return OHLC(isin="abc123")
 
 
 @pytest.fixture()
@@ -35,8 +30,8 @@ def sample_portfolio():
 
 
 @pytest.fixture()
-def sample_position(sample_instrument):
-    return Position(isin=sample_instrument.isin, amount=10, cost_basis=12.2, last_sale_price=77.4, last_sale_date=date)
+def sample_position():
+    return Position(isin="abc123", amount=10, cost_basis=12.2, last_sale_price=77.4, last_sale_date=date)
 
 
 @pytest.fixture()
@@ -47,11 +42,10 @@ def db():
 
 
 @pytest.fixture()
-def db_with_sample_data(db, sample_instrument, sample_stock_data, sample_portfolio, sample_position):
+def db_with_sample_data(db, sample_stock_data, sample_portfolio, sample_position):
     Session = sessionmaker(db.engine)
 
     with Session() as db_session:
-        db_session.add(sample_instrument)
         db_session.add(sample_stock_data)
         db_session.add(sample_portfolio)
         db_session.commit()
