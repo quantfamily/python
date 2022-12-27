@@ -92,8 +92,8 @@ class Worker:
                 context_socket = self.socket.new_context()
                 self.logger.info("Getting request")
                 request = Request.load(context_socket.recv())
-                response = self._process_ohlc(OHLC(**request.data))
-                context_socket.send(Response(task=request.task, data=response).dump())
+                order = self._process_ohlc(OHLC(**request.data))
+                context_socket.send(Response(task=request.task, data=order).dump())
                 context_socket.close()
             except (SocketTimeout, pynng.exceptions.Timeout):
                 context_socket.close()

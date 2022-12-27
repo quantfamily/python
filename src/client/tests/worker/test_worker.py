@@ -11,6 +11,8 @@ from foreverbull_core.models.socket import Request, Response
 from pandas import DataFrame
 from pynng import Req0
 
+from foreverbull_core.models.finance import Order
+
 
 def plain_ohlc_function(ohlc: OHLC, database: Database):
     assert type(ohlc) == OHLC
@@ -18,6 +20,7 @@ def plain_ohlc_function(ohlc: OHLC, database: Database):
     df = database.stock_data(ohlc.isin)
     assert type(df) == DataFrame
     assert len(df)
+    return Order(isin=ohlc.isin, amount=10)
 
 
 @pytest.mark.parametrize("workerclass", [WorkerThread, WorkerProcess])
@@ -73,6 +76,9 @@ def test_worker(workerclass: Worker, client_config, server_socket_config, spawn_
         context.close()
         assert response.task == request.task
         assert response.error is None
+        assert response.data
+        order = Order(**response.data)
+        assert order.isin == ohlc.isin
 
     server_socket.close()
 
