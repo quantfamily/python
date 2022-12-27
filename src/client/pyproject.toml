@@ -13,6 +13,7 @@ dependencies= [
 
 [project.optional-dependencies]
 dev = [
+    "yfinance>=0.1.87,<1.0.0",
     "pytest>=6.2.4,<7.0.0",
     "pytest-mock>=3.6.1,<4.0.0",
     "requests_mock>=1.9.3,<2.0.0",

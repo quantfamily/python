@@ -1,9 +1,10 @@
 import os
-from datetime import date
+from datetime import date, datetime
 from multiprocessing import get_start_method, set_start_method
 
 import pytest
 import yfinance
+from foreverbull.data.data import DateManager
 from foreverbull.data.stock_data import OHLC, Base
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
@@ -67,7 +68,7 @@ def hello(*args, **kwargs):
     os.remove("test_file.py")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def postgres_database():
     user = os.environ.get("POSTGRES_USER", "postgres")
     password = os.environ.get("POSTGRES_PASSWORD", "foreverbull")
@@ -77,7 +78,7 @@ def postgres_database():
     return Database(user=user, password=password, netloc=netloc, port=port, dbname=dbname)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def loaded_database(postgres_database: Database):
     instruments = {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT"}
     start = "2020-01-01"
@@ -107,3 +108,12 @@ def loaded_database(postgres_database: Database):
             session.add(ohlc)
     session.commit()
     return instruments
+
+
+@pytest.fixture
+def date_manager():
+    start = datetime(2020, 1, 1)
+    end = datetime(2021, 12, 31)
+    date = DateManager(start, end)
+    date.current = end
+    return date
