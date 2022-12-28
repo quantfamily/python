@@ -1,31 +1,25 @@
 import os
 from datetime import date
-from typing import Iterator
-import json
-import pynng
+from multiprocessing import get_start_method, set_start_method
+
+import numpy
 import pytest
 import yfinance
+from foreverbull.data import Database as WorkerDatabase
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
-from foreverbull_core.broker import Broker
 from foreverbull_core.models.finance import Order
 from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_zipline.app import Application
-from foreverbull_zipline.models import Database, EngineConfig, IngestConfig
-from pynng import Rep0, Req0, Sub0
-from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-from talib import EMA
+from foreverbull_zipline.models import Database, EngineConfig, IngestConfig, Result
 from pandas import DataFrame
-import numpy
-from foreverbull.data import Database as WorkerDatabase
+from pynng import Req0, Sub0
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, create_engine
+from sqlalchemy.orm import declarative_base, relation, sessionmaker
+from talib import EMA
 
 Base = declarative_base()
-
-from multiprocessing import get_start_method, set_start_method
 
 
 @pytest.fixture(scope="session")
@@ -35,15 +29,10 @@ def spawn_process():
         set_start_method("spawn", force=True)
 
 
-class Instrument(Base):
-    __tablename__ = "instrument"
-    isin = Column(String(), primary_key=True)
-
-
 class OHLC(Base):
     __tablename__ = "ohlc"
     id = Column(Integer, primary_key=True)
-    isin = Column(String(), ForeignKey("instrument.isin"))
+    isin = Column(String())
     open = Column(Integer())
     high = Column(Integer())
     low = Column(Integer())
@@ -52,25 +41,55 @@ class OHLC(Base):
     time = Column(String())
 
 
+class Position(Base):
+    __tablename__ = "position"
+    id = Column("id", Integer, primary_key=True)
+    isin = Column("isin", String)
+    portfolio_id = Column("portfolio_id", Integer, ForeignKey("portfolio.id"))
+    portfolio = relation("Portfolio", back_populates="positions")
+    amount = Column("amount", Integer)
+    cost_basis = Column("cost_basis", Float)
+    last_sale_price = Column("last_sale_price", Float)
+    last_sale_date = Column("last_sale_date", DateTime)
+
+
+class Portfolio(Base):
+    __tablename__ = "portfolio"
+    id = Column("id", Integer, primary_key=True)
+    execution_id = Column("execution", String)
+    cash_flow = Column("cash_flow", Float)
+    starting_cash = Column("starting_cash", Integer)
+    portfolio_value = Column("portfolio_value", Float)
+    pnl = Column("pnl", Float)
+    returns = Column("_returns", Float)
+    timestamp = Column("start_date", DateTime)
+    positions_value = Column("positions_value", Float)
+    positions_exposure = Column("positions_exposure", Float)
+    positions = relation("Position", back_populates="portfolio")
+
+
 def populate_sql(ic: IngestConfig, db: Database):
     engine = create_engine(f"postgresql://{db.user}:{db.password}@{db.netloc}:{db.port}/{db.dbname}")
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
     session.query(OHLC).delete()
-    session.query(Instrument).delete()
-    isin_to_symbol = {"US0378331005": "AAPL", "US88160R1014": "TSLA", "US5949181045": "MSFT", "US02079K1079": "GOOG", "US0231351067": "AMZN", "US30303M1027": "META"}
+    isin_to_symbol = {
+        "US0378331005": "AAPL",
+        "US88160R1014": "TSLA",
+        "US5949181045": "MSFT",
+        "US02079K1079": "GOOG",
+        "US0231351067": "AMZN",
+        "US30303M1027": "META",
+    }
     for isin in ic.isins:
         feed = yfinance.Ticker(isin_to_symbol[isin])
         data = feed.history(start=ic.from_date, end=ic.to_date)
-        instrument = Instrument(isin=isin)
-        session.add(instrument)
-        for (idx, row) in data.iterrows():
+        for idx, row in data.iterrows():
             ohlc = OHLC(
                 isin=isin, open=row.Open, high=row.High, low=row.Low, close=row.Close, volume=row.Volume, time=str(idx)
             )
             session.add(ohlc)
-            session.add(instrument)
     session.commit()
 
 
@@ -81,6 +100,7 @@ def on_ohlc(ohlc: OHLC, database: WorkerDatabase):
         if numpy.isnan(high) or low < high:
             return False
         return True
+
     history = database.stock_data(ohlc.isin)
     if should_hold(history, 16, 32):
         return Order(isin=ohlc.isin, amount=1)
@@ -125,6 +145,12 @@ def test_simple_execution(spawn_process):
     backtest_feed_socket.recv_timeout = 10000
     backtest_feed_socket.subscribe(b"")
 
+    backtest_broker_socket = Req0(
+        dial=f"tcp://{backtest_info['broker']['socket']['host']}:{backtest_info['broker']['socket']['port']}"
+    )
+    backtest_broker_socket.send_timeout = 10000
+    backtest_broker_socket.recv_timeout = 10000
+
     # Ingest backtest data
     netloc = os.environ.get("POSTGRES_NETLOC", "127.0.0.1")
     database_config = Database(user="postgres", password="foreverbull", netloc=netloc, port=5433, dbname="postgres")
@@ -159,9 +185,9 @@ def test_simple_execution(spawn_process):
     # Configure Worker
     worker_config = Configuration(
         execution_id="test",
-        execution_start_date=date.today(),
-        execution_end_date=date.today(),
-        database=None,
+        execution_start_date=date(2019, 1, 7),
+        execution_end_date=date(2021, 11, 30),
+        database=database_config,
         parameters=None,
         socket=client_server_socket_config,
     )
@@ -188,15 +214,22 @@ def test_simple_execution(spawn_process):
             client_server_socket.send(Request(task="ohlc", data=message.data).dump())
             response = Response.load(client_server_socket.recv())
             assert response.error is None
+            if response.data:
+                order = Order(**response.data)
+                backtest_broker_socket.send(Request(task="order", data=order).dump())
+                response = Response.load(backtest_broker_socket.recv())
+                assert response.error is None
         elif message.task == "backtest_completed":
             break
-    
+
     # Get Results
     backtest_main_socket.send(Request(task="result").dump())
     response = Response.load(backtest_main_socket.recv())
     assert response.error is None
-    with open("results.json", "w") as f:
-        json.dump(response.data, f, indent=4)
+    assert response.data
+
+    result = Result(**response.data)
+    assert result.periods[-1].capital_used
 
     # Stop
     client_socket.send(Request(task="stop").dump())

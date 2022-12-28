@@ -55,7 +55,7 @@ jobs:
         python -m pip install ta-lib
     - name: Integration test
       run: |
-        python -m pytest tests/ -vvs
+        python -m pytest tests/
       env:
         POSTGRES_NETLOC: localhost
         THREADED_EXECUTION: 1
