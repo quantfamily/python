@@ -22,8 +22,7 @@ class DatabaseEngine:
 
     def get_data(self, isin, from_date, to_date):
         query = f"""SELECT open, high, low, close, volume, time FROM ohlc
-        INNER JOIN instrument ON instrument.isin = ohlc.isin
-        WHERE instrument.isin='{isin}' AND time BETWEEN '{from_date}' AND '{to_date}'
+        WHERE isin='{isin}' AND time BETWEEN '{from_date}' AND '{to_date}'
         ORDER BY time asc"""
         return read_sql_query(query, self._engine)
 
