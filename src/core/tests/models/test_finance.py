@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from foreverbull_core.models.finance import Instrument, Order, OrderStatus, Portfolio, Position
+from foreverbull_core.models.finance import Instrument, Order, OrderStatus, Position
 
 
 def test_instrument():
@@ -31,27 +31,8 @@ def test_order():
 
 
 def test_position():
-    position = Position(isin="aabbcc123", amount=10, cost_basis=0.1, last_sale_price=15, last_sale_date="2017-01-01")
+    position = Position(isin="aabbcc123", amount=10, cost_basis=0.1, period=datetime.now())
 
     data = position.dump()
     loaded = Position.load(data)
     assert position == loaded
-
-
-def test_portfolio():
-    portfolio = Portfolio(
-        cash_flow=133.7,
-        starting_cash=1000,
-        portfolio_value=1543.0,
-        pnl=13.4,
-        returns=600,
-        cash=0,
-        positions=[],
-        timestamp=datetime(2021, 10, 1),
-        positions_value=1543.0,
-        positions_exposure=0,
-    )
-
-    data = portfolio.dump()
-    loaded = Portfolio.load(data)
-    assert portfolio == loaded

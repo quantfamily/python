@@ -1,10 +1,32 @@
 from datetime import datetime
 from typing import List, Optional
 
+from foreverbull_core.models import worker
 from foreverbull_core.models.base import Base
 from foreverbull_core.models.socket import SocketConfig
 
 from .finance import Position
+
+## KEEP TILL HTTP IS FIXED
+
+
+class Execution(Base):
+    running: bool
+    stage: str
+    error: Optional[str]
+
+
+class Session(Base):
+    id: Optional[str]
+    backtest_id: str
+    worker_id: Optional[str]
+    worker_count: Optional[int]
+    worker_parameters: Optional[List[worker.Parameter]]
+    run_automaticlly: bool = False
+    execution: Optional[Execution]
+
+
+## END KEEP
 
 
 class Database(Base):

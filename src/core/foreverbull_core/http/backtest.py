@@ -18,14 +18,14 @@ class Backtest:
             session = requests.Session()
         self.session = session
 
-    def list(self) -> List[backtest.Config]:
+    def list(self) -> List[backtest.EngineConfig]:
         """Lists stored backtest from Server
 
         Raises:
             RequestError: In case response code is not OK
 
         Returns:
-            List[backtest.Config]: List of configuration for Backtests stored on Server
+            List[backtest.EngineConfig]: List of configuration for Backtests stored on Server
         """
         rsp = self.session.get(f"http://{self.host}/api/v1/backtests")
         if not rsp.ok:
@@ -33,19 +33,19 @@ class Backtest:
                 f"""get call /backtests gave bad return code: {rsp.status_code}
             Text: {rsp.text}"""
             )
-        return [backtest.Config(**b) for b in rsp.json()]
+        return [backtest.EngineConfig(**b) for b in rsp.json()]
 
-    def create(self, backtest: backtest.Config) -> backtest.Config:
+    def create(self, backtest: backtest.EngineConfig) -> backtest.EngineConfig:
         """Creates and stores a new Backtest on the Server
 
         Args:
-            backtest (backtest.Config): Configuration for the backtest to be stored
+            backtest (backtest.EngineConfig): Configuration for the backtest to be stored
 
         Raises:
             RequestError: In case response code is not OK
 
         Returns:
-            backtest.Config: Stored, newly created, backtest.
+            backtest.EngineConfig: Stored, newly created, backtest.
         """
         rsp = self.session.post(f"http://{self.host}/api/v1/backtests", json=backtest.dict())
         if not rsp.ok:
@@ -55,7 +55,7 @@ class Backtest:
             )
         return backtest.update_fields(rsp.json())
 
-    def get(self, backtest_id: str) -> backtest.Config:
+    def get(self, backtest_id: str) -> backtest.EngineConfig:
         """Retrieve a stored backtest based on backtest ID
 
         Args:
@@ -65,7 +65,7 @@ class Backtest:
             RequestError: In case response code is not OK
 
         Returns:
-            backtest.Config: Full configuration of the stored Backtest
+            backtest.EngineConfig: Full configuration of the stored Backtest
         """
         rsp = self.session.get(f"http://{self.host}/api/v1/backtests/{backtest_id}")
         if not rsp.ok:
@@ -73,7 +73,7 @@ class Backtest:
                 f"""get call /backtests/{backtest_id} gave bad return code: {rsp.status_code}
             Text: {rsp.text}"""
             )
-        return backtest.Config(**rsp.json())
+        return backtest.EngineConfig(**rsp.json())
 
     def delete(self, backtest_id: str) -> None:
         """Delete a stored backtest, based on backtest_id

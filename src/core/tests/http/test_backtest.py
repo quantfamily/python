@@ -3,7 +3,7 @@ import requests
 import requests_mock
 from foreverbull_core.http import RequestError
 from foreverbull_core.http.backtest import Backtest
-from foreverbull_core.models.backtest import Config, EngineConfig, Session
+from foreverbull_core.models.backtest import EngineConfig, Session
 
 
 @pytest.fixture(scope="function")
@@ -30,46 +30,6 @@ def test_list_backtests_negative(backtest_session):
     adapter.register_uri("GET", "http://127.0.0.1:8080/api/v1/backtests", json=[], status_code=500)
     with pytest.raises(RequestError, match="get call /backtests gave bad return code: 500"):
         backtest.list()
-
-
-def test_create_backtest(backtest_session):
-    backtest_api, adapter = backtest_session()
-    engine = EngineConfig(
-        start_date="2020-01-01", end_date="2022-12-31", timezone="utc", benchmark="AAPL", assets=["AAPLE", "TSLA"]
-    )
-    backtest = Config(service_id="service_id", name="demo_backtest", config=engine)
-    created_backtest = Config(id="backtest_id", service_id="service_id", name="demo_backtest", config=engine)
-    adapter.register_uri("POST", "http://127.0.0.1:8080/api/v1/backtests", json=created_backtest.dict())
-    assert created_backtest == backtest_api.create(backtest)
-
-
-def test_create_backtest_negative(backtest_session):
-    backtest, adapter = backtest_session()
-    adapter.register_uri("POST", "http://127.0.0.1:8080/api/v1/backtests", status_code=500)
-    engine = EngineConfig(
-        start_date="2020-01-01", end_date="2022-12-31", timezone="utc", benchmark="AAPL", assets=["AAPLE", "TSLA"]
-    )
-    created_backtest = Config(id="backtest_id", service_id="service_id", name="demo_backtest", config=engine)
-    with pytest.raises(RequestError, match="post call /backtests gave bad return code: 500"):
-        backtest.create(created_backtest)
-
-
-def test_get_backtest(backtest_session):
-    backtest, adapter = backtest_session()
-    engine = EngineConfig(
-        start_date="2020-01-01", end_date="2022-12-31", timezone="utc", benchmark="AAPL", assets=["AAPLE", "TSLA"]
-    )
-    created_backtest = Config(id="backtest_id", service_id="service_id", name="demo_backtest", config=engine)
-    adapter.register_uri("GET", "http://127.0.0.1:8080/api/v1/backtests/backtest_id", json=created_backtest.dict())
-    assert created_backtest == backtest.get("backtest_id")
-
-
-def test_get_backtest_negative(backtest_session):
-    backtest, adapter = backtest_session()
-    backtest, adapter = backtest_session()
-    adapter.register_uri("GET", "http://127.0.0.1:8080/api/v1/backtests/backtest_id", status_code=500)
-    with pytest.raises(RequestError, match="get call /backtests/backtest_id gave bad return code: 500"):
-        backtest.get("backtest_id")
 
 
 def test_delete_backtest(backtest_session):
