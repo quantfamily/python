@@ -9,10 +9,10 @@ from foreverbull.data import Database as WorkerDatabase
 from foreverbull.foreverbull import Foreverbull
 from foreverbull.models import Configuration
 from foreverbull.worker import WorkerPool
+from foreverbull_core.models.backtest import Database, EngineConfig, IngestConfig, Result
 from foreverbull_core.models.finance import Order
 from foreverbull_core.models.socket import Request, Response, SocketConfig
 from foreverbull_zipline.app import Application
-from foreverbull_zipline.models import Database, EngineConfig, IngestConfig, Result
 from pandas import DataFrame
 from pynng import Req0, Sub0
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, create_engine
