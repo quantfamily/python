@@ -6,8 +6,8 @@ from collections import namedtuple
 import pandas as pd
 import pytz
 import six
+from foreverbull_core.models.backtest import EngineConfig, IngestConfig
 from foreverbull_zipline.data_bundles.foreverbull import DatabaseEngine, SQLIngester
-from foreverbull_zipline.models import EngineConfig, IngestConfig
 
 from zipline import TradingAlgorithm
 from zipline.data import bundles

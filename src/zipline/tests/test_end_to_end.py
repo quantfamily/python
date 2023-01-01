@@ -1,6 +1,7 @@
 import pynng
 import pytest
-from foreverbull_core.models.finance import Order, Portfolio
+from foreverbull_core.models.backtest import Period
+from foreverbull_core.models.finance import Order
 from foreverbull_core.models.socket import Request, Response
 from foreverbull_zipline.app import Application
 
@@ -106,7 +107,7 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
 
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
-        if msg.task == "portfolio":
+        if msg.task == "period":
             continue
         if msg.task == "day_completed":
             rsp = day_completed(main)
@@ -125,9 +126,9 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
 
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
-        if msg.task == "portfolio":
-            portfolio = Portfolio(**msg.data)
-            assert len(portfolio.positions) == 0
+        if msg.task == "period":
+            period = Period(**msg.data)
+            assert len(period.positions) == 0
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None
@@ -137,9 +138,9 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
 
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
-        if msg.task == "portfolio":
-            portfolio = Portfolio(**msg.data)
-            assert len(portfolio.positions) == 1
+        if msg.task == "period":
+            period = Period(**msg.data)
+            assert len(period.positions) == 1
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None

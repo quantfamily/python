@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from foreverbull_zipline.models import Database
+from foreverbull_core.models.backtest import Database
 from pandas import read_sql_query
 from sqlalchemy import create_engine
 

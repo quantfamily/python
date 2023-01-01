@@ -1,8 +1,8 @@
 import logging
-import os
 import threading
 from datetime import datetime
 
+from foreverbull_core.models.backtest import EngineConfig, IngestConfig, Period, Result
 from foreverbull_core.models.socket import SocketConfig
 from foreverbull_core.socket.client import SocketClient
 from foreverbull_core.socket.exceptions import SocketClosed, SocketTimeout
@@ -11,7 +11,6 @@ from foreverbull_zipline.backtest import Backtest
 from foreverbull_zipline.broker import Broker
 from foreverbull_zipline.exceptions import BacktestNotRunning
 from foreverbull_zipline.feed import Feed
-from foreverbull_zipline.models import EngineConfig, IngestConfig, Period, Result
 
 
 class ApplicationError(Exception):
@@ -21,7 +20,6 @@ class ApplicationError(Exception):
 class Application(threading.Thread):
     def __init__(self, socket_config: SocketConfig):
         self.logger = logging.getLogger(__name__)
-        self.id = os.environ.get("SERVICE_ID", None)
         self.socket_config: SocketConfig = socket_config
         self.running = False
         self.online = False
@@ -110,11 +108,10 @@ class Application(threading.Thread):
             self.feed.stop()
         self._stop_lock.release()
 
-    def _result(self) -> dict:
+    def _result(self) -> Result:
         result = Result(periods=[])
         for period in self.backtest.result:
-            period["period_open"] = datetime.fromtimestamp(period["period_open"] / 1000)
-            period["period_close"] = datetime.fromtimestamp(period["period_close"] / 1000)
+            period["period"] = datetime.fromtimestamp(period["period_open"] / 1000)
             period_result = Period(**period)
             result.periods.append(period_result)
-        return result.dict()
+        return result

@@ -3,13 +3,13 @@ import time
 from threading import Event
 
 import pytest
+from foreverbull_core.models.backtest import Database, EngineConfig, IngestConfig
 from foreverbull_core.models.finance import Instrument, Order
 from foreverbull_core.models.socket import SocketConfig
 from foreverbull_zipline.app import Application
 from foreverbull_zipline.backtest import Backtest
 from foreverbull_zipline.broker import Broker
 from foreverbull_zipline.feed import Feed
-from foreverbull_zipline.models import Database, EngineConfig, IngestConfig
 from tests.factories import populate_sql
 
 from zipline.data import bundles
