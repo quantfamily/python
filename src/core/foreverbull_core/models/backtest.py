@@ -7,7 +7,7 @@ from foreverbull_core.models.socket import SocketConfig
 
 from .finance import Position
 
-## KEEP TILL HTTP IS FIXED
+# KEEP TILL HTTP IS FIXED
 
 
 class Execution(Base):
@@ -26,7 +26,7 @@ class Session(Base):
     execution: Optional[Execution]
 
 
-## END KEEP
+# END KEEP
 
 
 class Database(Base):
