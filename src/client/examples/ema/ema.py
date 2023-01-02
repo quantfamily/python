@@ -4,6 +4,7 @@ import foreverbull
 import numpy
 from foreverbull.data.data import Database
 from foreverbull.models import OHLC
+from foreverbull_core.models.finance import Order
 from pandas.core.frame import DataFrame
 from talib import EMA
 
@@ -11,26 +12,26 @@ bull = foreverbull.Foreverbull()
 
 logger = logging.getLogger(__name__)
 
+ema_low = 16
+ema_high = 32
 
-def should_hold(df: DataFrame, ema_low, ema_high) -> bool:
-    high = EMA(df.price, timeperiod=ema_high)
-    if numpy.isnan(high.iloc[-1]):
+
+def should_hold(df: DataFrame, low, high):
+    high = EMA(df.close, timeperiod=high).iloc[-1]
+    low = EMA(df.close, timeperiod=low).iloc[-1]
+    if numpy.isnan(high) or low < high:
         return False
-    low = EMA(df.price, timeperiod=ema_low)
-    if high.iloc[-1] < low.iloc[-1]:
-        return True
-    return False
+    return True
 
 
 @bull.on("ohlc")
-def ema(tick: OHLC, database: Database, ema_low=16, ema_high=32):
-    pass
-    """ # TODO: FIX THIS
-    history = database.stock_data(tick.asset.symbol)
-    position = database.get_position(tick.asset)
-    if should_hold(history, ema_low, ema_high) and position is None:
-        return Order(asset=tick.asset, amount=10)
-    elif position and should_hold(history, ema_low, ema_high) is False:
-        return Order(asset=tick.asset, amount=-10)
+def ema(ohlc: OHLC, database: Database):
+    history = database.stock_data(ohlc.isin)
+    position = database.get_position(ohlc.isin)
+    hold = should_hold(history, ema_low, ema_high)
+
+    if hold and position is None:
+        return Order(isin=ohlc.isin, amount=10)
+    elif position and not hold:
+        return Order(asset=ohlc.isin, amount=-position.amount)
     return None
-    """

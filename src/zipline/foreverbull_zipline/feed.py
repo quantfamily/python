@@ -2,12 +2,12 @@ import logging
 import threading
 import time
 
-from foreverbull_core.models.finance import Portfolio
+from foreverbull_core.models.backtest import Period
+from foreverbull_core.models.finance import OHLC
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed
 from foreverbull_core.socket.nanomsg import NanomsgSocket
 from foreverbull_zipline.exceptions import EndOfDayError
-from foreverbull_zipline.models import OHLC
 
 from zipline.api import get_datetime
 
@@ -29,9 +29,9 @@ class Feed:
     def info(self) -> None:
         return {"socket": self.configuration.dict()}
 
-    def _send_portfolio(self):
-        portfolio = Portfolio.from_zipline_backtest(self.engine.trading_algorithm.portfolio, get_datetime())
-        req = Request(task="portfolio", data=portfolio.dict())
+    def _send_period(self):
+        period = Period.from_zipline_backtest(self.engine.trading_algorithm.portfolio, get_datetime())
+        req = Request(task="period", data=period.dict())
         self.socket.send(req.dump())
 
     def _send_ohlc(self, asset, data):
@@ -54,7 +54,7 @@ class Feed:
         self.day_completed = False
         self.lock.clear()
         self.bardata = data
-        self._send_portfolio()
+        self._send_period()
         for asset in context.assets:
             try:
                 self._send_ohlc(asset, data)

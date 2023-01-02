@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import List, Optional
+from typing import Optional
 
 from foreverbull_core.models.base import Base
 
@@ -10,6 +10,16 @@ class Instrument(Base):
     symbol: str
     exchange: str
     name: str
+
+
+class OHLC(Base):
+    isin: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    time: datetime
 
 
 class OrderStatus(IntEnum):
@@ -28,8 +38,7 @@ class Order(Base):
     commission: Optional[int]
     limit_price: Optional[int]
     stop_price: Optional[int]
-    current_date: Optional[str]
-    created_date: Optional[str]
+    created_at: Optional[datetime]
     status: Optional[OrderStatus]
 
     @classmethod
@@ -42,8 +51,7 @@ class Order(Base):
             commission=order.commission,
             limit_price=order.limit,
             stop_price=order.stop,
-            current_date=order.dt.isoformat(),
-            created_date=order.created.isoformat(),
+            created_at=order.created,
             status=order.status,
         )
 
@@ -52,44 +60,4 @@ class Position(Base):
     isin: str
     amount: int
     cost_basis: float
-    last_sale_price: float
-    last_sale_date: str
-
-
-class Portfolio(Base):
-    cash_flow: float
-    starting_cash: int
-    portfolio_value: float
-    pnl: float
-    returns: float
-    cash: float
-    positions: List[Position]
-    timestamp: datetime
-    positions_value: float
-    positions_exposure: float
-
-    @classmethod
-    def from_zipline_backtest(cls, backtest, timestamp: datetime):
-        positions = []
-        for _, pos in backtest.positions.items():
-            position = Position(
-                isin=pos.sid.symbol,
-                amount=pos.amount,
-                cost_basis=pos.cost_basis,
-                last_sale_price=pos.last_sale_price,
-                last_sale_date=pos.last_sale_date.isoformat(),
-            )
-            positions.append(position)
-        portfolio = Portfolio(
-            cash_flow=backtest.cash_flow,
-            starting_cash=backtest.starting_cash,
-            portfolio_value=backtest.portfolio_value,
-            pnl=backtest.pnl,
-            returns=backtest.returns,
-            cash=backtest.cash,
-            positions=positions,
-            timestamp=timestamp.isoformat(),
-            positions_value=backtest.positions_value,
-            positions_exposure=backtest.positions_exposure,
-        )
-        return portfolio
+    period: datetime
