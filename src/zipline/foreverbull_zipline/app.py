@@ -1,6 +1,6 @@
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 from foreverbull_core.models.backtest import EngineConfig, IngestConfig, Period, Result
 from foreverbull_core.models.socket import SocketConfig
@@ -111,7 +111,7 @@ class Application(threading.Thread):
     def _result(self) -> Result:
         result = Result(periods=[])
         for period in self.backtest.result:
-            period["period"] = datetime.fromtimestamp(period["period_open"] / 1000)
+            period["period"] = datetime.fromtimestamp(period["period_open"] / 1000, tz=timezone.utc)
             period_result = Period(**period)
             result.periods.append(period_result)
         return result

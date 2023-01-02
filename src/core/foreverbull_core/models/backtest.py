@@ -107,8 +107,6 @@ class Period(Base):
                 cost_basis=pos.cost_basis,
                 period=pos.last_sale_date.isoformat(),
             )
-            print(pos)
-            print(dir(pos))
             positions.append(position)
         period = Period(
             cash_flow=backtest.cash_flow,
