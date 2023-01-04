@@ -50,6 +50,14 @@ jobs:
           push: true
           tags: lhjnilsson/foreverbull_ema_example:latest
       -
+        name: Random Example
+        id: docker_build_client_random_example
+        uses: docker/build-push-action@v2
+        with:
+          context: src/client/examples/random
+          push: true
+          tags: lhjnilsson/foreverbull_random_example:latest
+      -
         name: Zipline
         id: docker_build_zipline
         uses: docker/build-push-action@v2
