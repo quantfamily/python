@@ -67,7 +67,7 @@ if __name__ == "__main__":
     try:
         if args.option == "run":
             client_parser.parse(args)
-            worker_pool = WorkerPool()
+            worker_pool = WorkerPool(**Foreverbull._worker_routes)
             worker_pool.setup()
             run_foreverbull(client_parser, worker_pool)
         elif args.option == "service":
