@@ -3,7 +3,7 @@ import threading
 import time
 
 from foreverbull_core.models.backtest import Period
-from foreverbull_core.models.finance import OHLC
+from foreverbull_core.models.finance import OHLC, Position
 from foreverbull_core.models.socket import Request, SocketConfig
 from foreverbull_core.socket.exceptions import SocketClosed
 from foreverbull_core.socket.nanomsg import NanomsgSocket
@@ -34,6 +34,15 @@ class Feed:
         req = Request(task="period", data=period.dict())
         self.socket.send(req.dump())
 
+    def _send_positions(self):
+        positions = self.engine.trading_algorithm.portfolio.positions.items()
+        for _, position in positions:
+            pos = Position(
+                isin=position.sid.symbol, amount=position.amount, cost_basis=position.cost_basis, period=get_datetime()
+            )
+            req = Request(task="position", data=pos.dict())
+            self.socket.send(req.dump())
+
     def _send_ohlc(self, asset, data):
         ohlc = OHLC(
             isin=asset.symbol,
@@ -55,6 +64,7 @@ class Feed:
         self.lock.clear()
         self.bardata = data
         self._send_period()
+        self._send_positions()
         for asset in context.assets:
             try:
                 self._send_ohlc(asset, data)
