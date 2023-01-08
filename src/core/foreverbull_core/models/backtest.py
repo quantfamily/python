@@ -5,8 +5,6 @@ from foreverbull_core.models import worker
 from foreverbull_core.models.base import Base
 from foreverbull_core.models.socket import SocketConfig
 
-from .finance import Position
-
 # KEEP TILL HTTP IS FIXED
 
 
@@ -95,19 +93,9 @@ class Period(Base):
     benchmark_period_return: Optional[float]
     benchmark_volatility: Optional[float]
     algorithm_period_return: Optional[float]
-    positions: Optional[List[Position]]
 
     @classmethod
     def from_zipline_backtest(cls, backtest, timestamp: datetime):
-        positions = []
-        for _, pos in backtest.positions.items():
-            position = Position(
-                isin=pos.sid.symbol,
-                amount=pos.amount,
-                cost_basis=pos.cost_basis,
-                period=pos.last_sale_date.isoformat(),
-            )
-            positions.append(position)
         period = Period(
             cash_flow=backtest.cash_flow,
             starting_cash=backtest.starting_cash,
@@ -118,7 +106,6 @@ class Period(Base):
             period=timestamp.isoformat(),
             positions_value=backtest.positions_value,
             positions_exposure=backtest.positions_exposure,
-            positions=positions,
         )
         return period
 

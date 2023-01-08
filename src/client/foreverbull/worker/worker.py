@@ -34,8 +34,7 @@ class Worker:
         try:
             return self._routes["ohlc"](ohlc, self.database)
         except KeyError:
-            self.logger.error("No route for OHLC")
-            return None
+            raise WorkerException("No route for ohlc")
 
     def configure(self, configuration: Configuration):
         self.configuration = configuration
@@ -93,12 +92,15 @@ class Worker:
                 self.logger.info("Getting request")
                 request = Request.load(context_socket.recv())
                 order = self._process_ohlc(OHLC(**request.data))
+                self.logger.info(f"Sending response {order}")
                 context_socket.send(Response(task=request.task, data=order).dump())
                 context_socket.close()
             except (SocketTimeout, pynng.exceptions.Timeout):
                 context_socket.close()
             except Exception as e:
                 self.logger.exception(repr(e))
+                context_socket.send(Response(task=request.task, error=repr(e)).dump())
+                context_socket.close()
                 raise WorkerException(repr(e))
             if self._stop_event.is_set():
                 break

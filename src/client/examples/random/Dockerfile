@@ -1,6 +1,6 @@
 FROM lhjnilsson/foreverbull_client:latest
 
 WORKDIR /algos
-COPY random.py random.py
+COPY algo.py algo.py
 
-CMD [ "python", "-m", "foreverbull", "run", "random.py" ]
+CMD [ "python", "-m", "foreverbull", "run", "algo.py" ]

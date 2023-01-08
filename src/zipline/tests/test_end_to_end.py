@@ -124,11 +124,14 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
     assert rsp.error is None
     order_data = rsp.data
 
+    positions = []
+
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
+        if msg.task == "position":
+            positions.append(msg.data)
         if msg.task == "period":
-            period = Period(**msg.data)
-            assert len(period.positions) == 0
+            Period(**msg.data)
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None
@@ -138,15 +141,18 @@ def test_order_and_result(backtest, foreverbull_bundle, engine_config):
 
     while True:  # Just to jump one day
         msg = new_feed_data(feed)
+        if msg.task == "position":
+            positions.append(msg.data)
         if msg.task == "period":
-            period = Period(**msg.data)
-            assert len(period.positions) == 1
+            Period(**msg.data)
         if msg.task == "day_completed":
             rsp = day_completed(main)
             assert rsp.error is None
             break
         if msg.task == "backtest_completed":
             break
+
+    assert len(positions)
 
     order = Order.load(order_data)
     req = Request(task="get_order", data=order)
